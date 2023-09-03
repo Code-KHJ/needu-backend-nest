@@ -1,20 +1,22 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Response } from 'express';
+import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entity/user.entity';
 import { UserLoginDto } from './dto/user-login.dto';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+import { Redis } from 'ioredis';
+import { UserDuplicDto } from './dto/user-duplic.dto';
+import nodemailer from 'nodemailer';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @Inject('REDIS_CLIENT')
+    private readonly redis: Redis,
   ) {}
   async login(userLoginDto: UserLoginDto) {
     const { id, password } = userLoginDto;
@@ -30,9 +32,85 @@ export class UserService {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
 
-    // try{
-    //   const jwt =
-    // }
-    return user;
+    const payload = {
+      id: id,
+      nickname: user.nickname,
+    };
+
+    const accessToken = jwt.sign(payload, process.env.JWT_KEY, {
+      issuer: process.env.JWT_ISSUER,
+      algorithm: process.env.JWT_ALGORITHM,
+      expiresIn: process.env.JWT_EXPIRESIN,
+    });
+
+    const refreshToken: string = jwt.sign({}, process.env.JWT_KEY, {
+      issuer: process.env.JWT_ISSUER,
+      algorithm: process.env.JWT_ALGORITHM,
+      expiresIn: process.env.JWT_EXPIRESIN_REFRESH,
+    });
+
+    this.redis.set(id, refreshToken);
+
+    const current = new Date().toISOString().slice(0, 10);
+    user.login_date = new Date(current);
+    await this.usersRepository.save(user);
+
+    return { accessToken, refreshToken };
+  }
+
+  async duplic(userDuplicDto: UserDuplicDto) {
+    const { item, value } = userDuplicDto;
+    let result: boolean = false;
+    const user = await this.usersRepository.createQueryBuilder().where(`${item} = '${value}'`).getOne();
+    if (user === null) {
+      result = true;
+      return { result };
+    }
+    return { result };
+  }
+
+  async verifyEmail(email) {
+    let target = email.mail;
+    let authNum = Math.random().toString().substring(2, 8);
+    let emailTemplate = `
+      <html>
+      <body>
+        <div>
+          <h1 style='color:black'>NeedU 회원가입을 환영합니다.</h1>
+          <br>
+          <p style='color:black'>회원 가입을 위한 인증번호 입니다.</p>
+          <p style='color:black'>아래의 인증 번호를 입력하여 인증을 완료해주세요.</p>
+          <h2>${authNum}</h2>
+        </div>
+      </body>
+      </html>
+    `;
+
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+
+    let mailOptions = {
+      from: `needu`,
+      to: target,
+      subject: '[Needu] 회원가입을 위한 인증번호입니다.',
+      html: emailTemplate,
+    };
+
+    transporter.sendMail(mailOptions, function (err, info) {
+      if (err) {
+        console.log(err);
+      }
+      console.log('finish sending : ' + info.response);
+      transporter.close();
+    });
+    return authNum;
   }
 }
