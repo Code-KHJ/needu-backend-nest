@@ -1,3 +1,4 @@
+import { IsEmail } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'user' })
@@ -5,6 +6,7 @@ export class User {
   @PrimaryGeneratedColumn({ name: 'No' })
   no: number;
 
+  @IsEmail()
   @Column()
   id: string;
 
@@ -19,6 +21,12 @@ export class User {
 
   @Column()
   authority: number;
+
+  @Column()
+  policy: boolean;
+
+  @Column()
+  personal_info: boolean;
 
   @Column()
   marketing_email: boolean;

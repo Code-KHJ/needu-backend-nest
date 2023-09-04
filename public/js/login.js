@@ -28,7 +28,7 @@ function login() {
     .post('/users/login', userLoginDto)
     .then(function (response) {
       if (response.status === 200) {
-        console.log('good');
+        console.log('good');//페이지 넘겨주기
       }
     })
     .catch(function (error) {

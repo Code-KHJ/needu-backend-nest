@@ -9,6 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import { Redis } from 'ioredis';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import nodemailer from 'nodemailer';
+import { UserSignupDto } from './dto/user-signup.dto';
 
 @Injectable()
 export class UserService {
@@ -56,6 +57,41 @@ export class UserService {
     await this.usersRepository.save(user);
 
     return { accessToken, refreshToken };
+  }
+
+  async signup(userSignupDto: UserSignupDto) {
+    //아이디 중복 검사
+    const userDuplicDto = new UserDuplicDto();
+    userDuplicDto.item = 'id';
+    userDuplicDto.value = userSignupDto.id;
+    console.log('123');
+    const checkDuplicId = await this.duplic(userDuplicDto);
+    console.log(checkDuplicId);
+    if (!checkDuplicId.result) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+
+    const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
+    const hashPw = bcrypt.hashSync(userSignupDto.password, salt);
+    userSignupDto.password = hashPw;
+
+    const user = this.usersRepository.create({
+      id: userSignupDto.id,
+      password: userSignupDto.password,
+      phonenumber: userSignupDto.phonenumber,
+      nickname: userSignupDto.nickname,
+      policy: userSignupDto.check_2,
+      personal_info: userSignupDto.check_3,
+      marketing_email: userSignupDto.check_4,
+      marketing_SMS: userSignupDto.check_5,
+      info_period: userSignupDto.radio1,
+    });
+    try {
+      await this.usersRepository.save(user);
+      return true;
+    } catch (error) {
+      return error;
+    }
   }
 
   async duplic(userDuplicDto: UserDuplicDto) {

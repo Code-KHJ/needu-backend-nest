@@ -147,7 +147,10 @@ function checkPw2() {
     return true;
   }
 }
+
+let checkResultNm = false;
 async function checkNm() {
+  checkResultNm = false;
   const nickname = document.getElementById('nickname');
   const msgnm = document.getElementById('checknmmsg');
   const regnm = /^[A-Za-z가-힣0-9._-]{2,}$/; //영어, 한글, 숫자만 가능한 정규식
@@ -163,28 +166,29 @@ async function checkNm() {
       msgnm.innerHTML = '닉네임은 영어, 한글, 숫자로 만들어주세요.';
     } else {
       //닉네임 중복체크
-      try {
-        const res = await axios.post('/users/signup/duplic', {
-          check: 'nickname',
-          checkName: nickname.value,
+      await axios
+        .post('/users/signup/duplic', {
+          item: 'nickname',
+          value: nickname.value,
+        })
+        .then(function (response) {
+          let result = response.data.result;
+          //통과
+          if (result) {
+            nickname.style.backgroundColor = '#FFFFFF';
+            nickname.style.borderColor = '#6269F5';
+            msgnm.style = 'display: none;';
+            checkResultNm = true;
+            return true;
+          } else {
+            nickname.style.backgroundColor = '#FFFFFF';
+            nickname.style.borderColor = '#FF4444';
+            msgnm.style = 'display: ';
+            msgnm.innerHTML = '이미 존재하는 닉네임입니다.';
+            checkResultNm = false;
+            return false;
+          }
         });
-        //통과
-        if (res.data == 1) {
-          nickname.style.backgroundColor = '#FFFFFF';
-          nickname.style.borderColor = '#6269F5';
-          msgnm.style = 'display: none;';
-          return true;
-        } else {
-          nickname.style.backgroundColor = '#FFFFFF';
-          nickname.style.borderColor = '#FF4444';
-          msgnm.style = 'display: ';
-          msgnm.innerHTML = '이미 존재하는 닉네임입니다.';
-          return false;
-        }
-      } catch (err) {
-        console.log(err);
-        return false;
-      }
     }
   }
 }
@@ -248,7 +252,7 @@ async function checkSubmit() {
   const ckbox2 = document.getElementById('check_2').checked;
   const ckbox3 = document.getElementById('check_3').checked;
   const checkid = checkResultId;
-  const checknm = await checkNm();
+  const checknm = checkResultNm;
   const list = [checkid, checkPw1(), checkPw2(), checknm, checkPn(), ckbox2, ckbox3, checkRd()];
   if (list.every(ck => ck == true)) {
     return true;
@@ -280,3 +284,35 @@ form.addEventListener('change', () => {
     })();
   }
 });
+
+//회원가입 API 요청
+document.getElementById('frm').addEventListener('submit', async function (event) {
+  event.preventDefault();
+  signup();
+});
+function signup() {
+  const form = document.getElementById('frm');
+  const formData = new FormData(form);
+  let userSignupDto = {
+    id: document.getElementById('id').value,
+    password: document.getElementById('password1').value,
+    phonenumber: document.getElementById('phonenumber').value,
+    nickname: document.getElementById('nickname').value,
+    check_2: document.getElementById('check_2').checked,
+    check_3: document.getElementById('check_3').checked,
+    check_4: document.getElementById('check_4').checked,
+    check_5: document.getElementById('check_5').checked,
+    radio1: formData.get('radio1'),
+  };
+  axios
+    .post('/users/signup', userSignupDto)
+    .then(function (response) {
+      if (response.status === 200) {
+      }
+    })
+    .catch(function (error) {
+      if (error.status === 401) {
+        alert('아이디가 이미 존재합니다.');
+      }
+    });
+}
