@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { UserService } from './users.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDuplicDto } from './dto/user-duplic.dto';
+import { UserSignupDto } from './dto/user-signup.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -13,6 +14,20 @@ export class UsersController {
   @Get('/signup')
   viewSignup(@Res() res: Response) {
     res.status(HttpStatus.OK).render('views/signup.html');
+  }
+
+  @Post('/signup')
+  @ApiOperation({ summary: '회원가입 요청' })
+  @ApiResponse({
+    status: 200,
+    description: '회원가입 완료',
+  })
+  async signup(@Body() userSignupDto: UserSignupDto, @Res() res: Response) {
+    const result = await this.userService.signup(userSignupDto);
+    console.log(result);
+    if (result) {
+      return res.status(HttpStatus.OK).json({ message: '회원가입 성공' });
+    }
   }
 
   @Post('/signup/duplic')
