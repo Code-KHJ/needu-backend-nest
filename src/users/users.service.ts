@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entity/user.entity';
+import { User } from '../entity/user.entity';
 import { UserLoginDto } from './dto/user-login.dto';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
@@ -12,7 +12,7 @@ import nodemailer from 'nodemailer';
 import { UserSignupDto } from './dto/user-signup.dto';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -64,10 +64,8 @@ export class UserService {
     const userDuplicDto = new UserDuplicDto();
     userDuplicDto.item = 'id';
     userDuplicDto.value = userSignupDto.id;
-    console.log('123');
     const checkDuplicId = await this.duplic(userDuplicDto);
-    console.log(checkDuplicId);
-    if (!checkDuplicId.result) {
+    if (!checkDuplicId) {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
 
@@ -100,9 +98,9 @@ export class UserService {
     const user = await this.usersRepository.createQueryBuilder().where(`${item} = '${value}'`).getOne();
     if (user === null) {
       result = true;
-      return { result };
+      return result;
     }
-    return { result };
+    return result;
   }
 
   async verifyEmail(email) {
@@ -148,5 +146,18 @@ export class UserService {
       transporter.close();
     });
     return authNum;
+  }
+
+  async remove(id: string) {
+    const user = await this.usersRepository.findOneBy({
+      id: id,
+    });
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    this.usersRepository.delete({ id: id });
+    return {
+      result: 'success',
+    };
   }
 }

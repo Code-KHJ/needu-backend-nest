@@ -1,7 +1,7 @@
 import { UserLoginDto } from './dto/user-login.dto';
-import { Body, Controller, Get, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { UserService } from './users.service';
+import { UsersService } from './users.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserSignupDto } from './dto/user-signup.dto';
@@ -9,7 +9,7 @@ import { UserSignupDto } from './dto/user-signup.dto';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UsersService) {}
 
   @Get('/signup')
   viewSignup(@Res() res: Response) {
@@ -24,7 +24,6 @@ export class UsersController {
   })
   async signup(@Body() userSignupDto: UserSignupDto, @Res() res: Response) {
     const result = await this.userService.signup(userSignupDto);
-    console.log(result);
     if (result) {
       return res.status(HttpStatus.OK).json({ message: '회원가입 성공' });
     }
@@ -73,5 +72,16 @@ export class UsersController {
     } catch (error) {
       return res.status(error.getStatus()).json({ message: error.message });
     }
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '회원탈퇴' })
+  // @ApiResponseDto()
+  @ApiResponse({
+    status: 200,
+    description: '회원탈퇴 성공',
+  })
+  async remove(@Param('id') id: string) {
+    return this.userService.remove(id);
   }
 }
