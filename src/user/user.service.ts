@@ -12,16 +12,16 @@ import nodemailer from 'nodemailer';
 import { UserSignupDto } from './dto/user-signup.dto';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
     @Inject('REDIS_CLIENT')
     private readonly redis: Redis,
   ) {}
   async login(userLoginDto: UserLoginDto) {
     const { id, password } = userLoginDto;
-    const user = await this.usersRepository.findOneBy({
+    const user = await this.userRepository.findOneBy({
       id: id,
     });
     if (!user) {
@@ -54,7 +54,7 @@ export class UsersService {
 
     const current = new Date().toISOString().slice(0, 10);
     user.login_date = new Date(current);
-    await this.usersRepository.save(user);
+    await this.userRepository.save(user);
 
     return { accessToken, refreshToken };
   }
@@ -73,7 +73,7 @@ export class UsersService {
     const hashPw = bcrypt.hashSync(userSignupDto.password, salt);
     userSignupDto.password = hashPw;
 
-    const user = this.usersRepository.create({
+    const user = this.userRepository.create({
       id: userSignupDto.id,
       password: userSignupDto.password,
       phonenumber: userSignupDto.phonenumber,
@@ -85,7 +85,7 @@ export class UsersService {
       info_period: userSignupDto.radio1,
     });
     try {
-      await this.usersRepository.save(user);
+      await this.userRepository.save(user);
       return true;
     } catch (error) {
       return error;
@@ -95,7 +95,7 @@ export class UsersService {
   async duplic(userDuplicDto: UserDuplicDto) {
     const { item, value } = userDuplicDto;
     let result: boolean = false;
-    const user = await this.usersRepository.createQueryBuilder().where(`${item} = '${value}'`).getOne();
+    const user = await this.userRepository.createQueryBuilder().where(`${item} = '${value}'`).getOne();
     if (user === null) {
       result = true;
       return result;
@@ -149,13 +149,13 @@ export class UsersService {
   }
 
   async remove(id: string) {
-    const user = await this.usersRepository.findOneBy({
+    let user = await this.userRepository.findOneBy({
       id: id,
     });
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    this.usersRepository.delete({ id: id });
+    this.userRepository.delete({ id: id });
     return {
       result: 'success',
     };
