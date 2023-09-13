@@ -1,15 +1,15 @@
 import { UserLoginDto } from './dto/user-login.dto';
 import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserSignupDto } from './dto/user-signup.dto';
 
-@ApiTags('Users')
-@Controller('users')
-export class UsersController {
-  constructor(private userService: UsersService) {}
+@ApiTags('User')
+@Controller('user')
+export class UserController {
+  constructor(private userService: UserService) {}
 
   @Get('/signup')
   viewSignup(@Res() res: Response) {
@@ -51,6 +51,20 @@ export class UsersController {
     return res.json(result);
   }
 
+  @Delete(':id')
+  @ApiOperation({ summary: '회원탈퇴' })
+  // @ApiResponseDto()
+  @ApiResponse({
+    status: 200,
+    description: '회원탈퇴 성공',
+  })
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    const result = await this.userService.remove(id);
+    if (result) {
+      return res.status(HttpStatus.OK).json({ message: '회원탈퇴 성공' });
+    }
+  }
+
   @Get('/login')
   viewLogin(@Res() res: Response) {
     res.status(HttpStatus.OK).render('views/login.html');
@@ -74,14 +88,15 @@ export class UsersController {
     }
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: '회원탈퇴' })
-  // @ApiResponseDto()
-  @ApiResponse({
-    status: 200,
-    description: '회원탈퇴 성공',
-  })
-  async remove(@Param('id') id: string) {
-    return this.userService.remove(id);
-  }
+  @Get('/logout')
+  logout() {}
+
+  @Post('/findId')
+  findId() {}
+
+  @Post('/findPw')
+  findPw() {}
+
+  @Post('/updatePw') //put
+  updatePw() {}
 }

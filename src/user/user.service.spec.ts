@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { User } from 'src/entity/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -12,16 +12,16 @@ import bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigModule } from '@nestjs/config';
 
-describe('UsersService', () => {
-  let usersService: UsersService;
-  let usersRepository: Repository<User>;
+describe('UserService', () => {
+  let userService: UserService;
+  let userRepository: Repository<User>;
   let redis: Redis;
   const usersRepositoryToken = getRepositoryToken(User);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UsersService,
+        UserService,
         Redis,
         {
           provide: usersRepositoryToken,
@@ -42,17 +42,17 @@ describe('UsersService', () => {
       imports: [ConfigModule.forRoot()],
     }).compile();
 
-    usersService = module.get<UsersService>(UsersService);
-    usersRepository = module.get<Repository<User>>(usersRepositoryToken);
+    userService = module.get<UserService>(UserService);
+    userRepository = module.get<Repository<User>>(usersRepositoryToken);
     redis = module.get<Redis>('REDIS_CLIENT');
   });
 
   it('usersService should be defined', () => {
-    expect(usersService).toBeDefined();
+    expect(userService).toBeDefined();
   });
 
   it('usersRepository should be defined', () => {
-    expect(usersRepository).toBeDefined();
+    expect(userRepository).toBeDefined();
   });
 
   describe('로그인 테스트', () => {
@@ -61,10 +61,10 @@ describe('UsersService', () => {
         id: '없는계정@example.com',
         password: 'password123',
       };
-      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(undefined);
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(undefined);
 
       try {
-        await usersService.login(userLoginDto);
+        await userService.login(userLoginDto);
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         expect(error.response).toEqual('NOT_FOUND');
@@ -83,10 +83,10 @@ describe('UsersService', () => {
       existingUser.id = 'test@test.com';
       existingUser.password = await bcrypt.hashSync('validpassword', salt);
 
-      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(existingUser);
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(existingUser);
 
       try {
-        await usersService.login(userLoginDto);
+        await userService.login(userLoginDto);
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         expect(error.response).toEqual('UNAUTHORIZED');
@@ -106,7 +106,7 @@ describe('UsersService', () => {
       existingUser.nickname = '니쥬';
       existingUser.password = await bcrypt.hashSync('validpassword', salt);
 
-      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(existingUser);
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(existingUser);
 
       const payload = {
         id: existingUser.id,
@@ -126,7 +126,7 @@ describe('UsersService', () => {
 
       jest.spyOn(redis, 'set').mockResolvedValue(undefined);
 
-      const result = await usersService.login(userLoginDto);
+      const result = await userService.login(userLoginDto);
 
       expect(result.accessToken).toEqual(accessToken);
       expect(result.refreshToken).toEqual(refreshToken);
@@ -143,10 +143,10 @@ describe('UsersService', () => {
         where: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue({}),
       };
-      jest.spyOn(usersRepository, 'createQueryBuilder').mockReturnValue(mockSelectQueryBuilder as any);
+      jest.spyOn(userRepository, 'createQueryBuilder').mockReturnValue(mockSelectQueryBuilder as any);
 
-      const result = await usersService.duplic(userDuplicDto);
-      expect(result.result).toBe(false);
+      const result = await userService.duplic(userDuplicDto);
+      expect(result).toBe(false);
     });
     it('중복없음 사용가능', async () => {
       const userDuplicDto: UserDuplicDto = {
@@ -158,10 +158,10 @@ describe('UsersService', () => {
         where: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(null),
       };
-      jest.spyOn(usersRepository, 'createQueryBuilder').mockReturnValue(mockSelectQueryBuilder as any);
+      jest.spyOn(userRepository, 'createQueryBuilder').mockReturnValue(mockSelectQueryBuilder as any);
 
-      const result = await usersService.duplic(userDuplicDto);
-      expect(result.result).toBe(true);
+      const result = await userService.duplic(userDuplicDto);
+      expect(result).toBe(true);
     });
   });
 });
