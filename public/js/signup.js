@@ -24,7 +24,7 @@ async function checkId() {
       value: userid.value,
     })
     .then(function (response) {
-      let result = response.data.result;
+      let result = response.data;
       if (result) {
         userid.style.borderColor = '#6269F5';
         msgid.style = 'display: none;';
@@ -172,7 +172,7 @@ async function checkNm() {
           value: nickname.value,
         })
         .then(function (response) {
-          let result = response.data.result;
+          let result = response.data;
           //통과
           if (result) {
             nickname.style.backgroundColor = '#FFFFFF';
