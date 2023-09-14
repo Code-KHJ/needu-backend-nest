@@ -1,41 +1,45 @@
-import { IsEmail } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'review' })
+@Entity({ name: 'Review_Posts' })
 export class Review {
   @PrimaryGeneratedColumn({ name: 'No' })
   no: number;
 
-  @IsEmail()
-  @Column()
-  id: string;
+  @Column({ name: 'Corp_name' })
+  corp_name: string;
 
   @Column()
-  password: string;
+  user_id: string;
 
   @Column()
-  phonenumber: string;
+  total_score: number;
 
   @Column()
-  nickname: string;
+  growth_score: number;
 
   @Column()
-  authority: number;
+  leadership_score: number;
 
   @Column()
-  policy: boolean;
+  reward_score: number;
 
   @Column()
-  personal_info: boolean;
+  worth_score: number;
 
   @Column()
-  marketing_email: boolean;
+  culture_score: number;
 
   @Column()
-  marketing_SMS: boolean;
+  worklife_score: number;
 
   @Column()
-  info_period: string;
+  highlight: string;
+
+  @Column('longtext')
+  pros: string;
+
+  @Column('longtext')
+  cons: string;
 
   @Column()
   created_date: Date;
@@ -44,5 +48,8 @@ export class Review {
   modified_date: Date;
 
   @Column()
-  login_date: Date;
+  likes: number;
+
+  @Column()
+  blind: boolean;
 }
