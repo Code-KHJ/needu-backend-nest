@@ -19,7 +19,7 @@ async function checkId() {
   }
   //아이디 중복체크
   await axios
-    .post('/users/signup/duplic', {
+    .post('/users/duplic', {
       item: 'id',
       value: userid.value,
     })
@@ -167,7 +167,7 @@ async function checkNm() {
     } else {
       //닉네임 중복체크
       await axios
-        .post('/users/signup/duplic', {
+        .post('/users/duplic', {
           item: 'nickname',
           value: nickname.value,
         })
@@ -298,16 +298,16 @@ function signup() {
     password: document.getElementById('password1').value,
     phonenumber: document.getElementById('phonenumber').value,
     nickname: document.getElementById('nickname').value,
-    check_2: document.getElementById('check_2').checked,
-    check_3: document.getElementById('check_3').checked,
-    check_4: document.getElementById('check_4').checked,
-    check_5: document.getElementById('check_5').checked,
-    radio1: formData.get('radio1'),
+    policy: document.getElementById('check_2').checked,
+    personal_info: document.getElementById('check_3').checked,
+    marketing_email: document.getElementById('check_4').checked,
+    marketing_SMS: document.getElementById('check_5').checked,
+    info_period: formData.get('radio1'),
   };
   axios
     .post('/users/signup', userSignupDto)
     .then(function (response) {
-      if (response.status === 200) {
+      if (response.status === 201) {
       }
     })
     .catch(function (error) {

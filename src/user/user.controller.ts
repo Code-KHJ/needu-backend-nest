@@ -1,13 +1,14 @@
 import { UserLoginDto } from './dto/user-login.dto';
-import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDuplicDto } from './dto/user-duplic.dto';
-import { UserSignupDto } from './dto/user-signup.dto';
+import { UserCreateDto } from './dto/user-create.dto';
+import { UserDeleteeDto } from './dto/user-delete.dto';
 
 @ApiTags('User')
-@Controller('user')
+@Controller('/api/user')
 export class UserController {
   constructor(private userService: UserService) {}
 
@@ -19,17 +20,14 @@ export class UserController {
   @Post('/signup')
   @ApiOperation({ summary: '회원가입 요청' })
   @ApiResponse({
-    status: 200,
+    status: 201,
     description: '회원가입 완료',
   })
-  async signup(@Body() userSignupDto: UserSignupDto, @Res() res: Response) {
-    const result = await this.userService.signup(userSignupDto);
-    if (result) {
-      return res.status(HttpStatus.OK).json({ message: '회원가입 성공' });
-    }
+  create(@Body() userCreateDto: UserCreateDto) {
+    return this.userService.create(userCreateDto);
   }
 
-  @Post('/signup/duplic')
+  @Post('/duplic')
   @ApiOperation({ summary: '회원정보 중복 여부' })
   @ApiResponse({
     status: 200,
@@ -51,15 +49,28 @@ export class UserController {
     return res.json(result);
   }
 
+  /////토큰 기능 구현 완료 후에 토큰 기준으로 처리
+  @Put('/update')
+  @ApiOperation({ summary: '회원정보 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '회원정보 수정 성공',
+  })
+  update() {}
+
+  /////토큰 기능 구현 완료 후에 토큰 기준으로 처리
+  @Post('/updatePw') //put
+  updatePw() {}
+
   @Delete(':id')
   @ApiOperation({ summary: '회원탈퇴' })
-  // @ApiResponseDto()
   @ApiResponse({
     status: 200,
     description: '회원탈퇴 성공',
   })
-  async remove(@Param('id') id: string, @Res() res: Response) {
-    const result = await this.userService.remove(id);
+  async remove(@Param('id') id: string, @Body() userDeleteDto: UserDeleteeDto, @Res() res: Response) {
+    userDeleteDto.id = id;
+    const result = await this.userService.remove(userDeleteDto);
     if (result) {
       return res.status(HttpStatus.OK).json({ message: '회원탈퇴 성공' });
     }
@@ -72,7 +83,6 @@ export class UserController {
 
   @Post('/login')
   @ApiOperation({ summary: '로그인' })
-  // @ApiResponseDto()
   @ApiResponse({
     status: 200,
     description: '로그인 성공',
@@ -96,7 +106,4 @@ export class UserController {
 
   @Post('/findPw')
   findPw() {}
-
-  @Post('/updatePw') //put
-  updatePw() {}
 }
