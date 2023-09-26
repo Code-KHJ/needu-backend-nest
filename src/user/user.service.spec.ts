@@ -5,7 +5,7 @@ import { User } from 'src/entity/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
-import { UserSignupDto } from './dto/user-signup.dto';
+import { UserSignupDto } from './dto/user-create.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import bcrypt from 'bcrypt';

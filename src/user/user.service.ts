@@ -9,7 +9,9 @@ import * as jwt from 'jsonwebtoken';
 import { Redis } from 'ioredis';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import nodemailer from 'nodemailer';
-import { UserSignupDto } from './dto/user-signup.dto';
+import { UserCreateDto } from './dto/user-create.dto';
+import { UserCreateResponseDto } from './dto/user-create-response.dto';
+import { UserDeleteeDto } from './dto/user-delete.dto';
 
 @Injectable()
 export class UserService {
@@ -59,36 +61,37 @@ export class UserService {
     return { accessToken, refreshToken };
   }
 
-  async signup(userSignupDto: UserSignupDto) {
+  async create(userCreateDto: UserCreateDto): Promise<UserCreateResponseDto> {
     //아이디 중복 검사
     const userDuplicDto = new UserDuplicDto();
     userDuplicDto.item = 'id';
-    userDuplicDto.value = userSignupDto.id;
+    userDuplicDto.value = userCreateDto.id;
     const checkDuplicId = await this.duplic(userDuplicDto);
     if (!checkDuplicId) {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
 
     const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
-    const hashPw = bcrypt.hashSync(userSignupDto.password, salt);
-    userSignupDto.password = hashPw;
+    const hashPw = bcrypt.hashSync(userCreateDto.password, salt);
+    userCreateDto.password = hashPw;
 
     const user = this.userRepository.create({
-      id: userSignupDto.id,
-      password: userSignupDto.password,
-      phonenumber: userSignupDto.phonenumber,
-      nickname: userSignupDto.nickname,
-      policy: userSignupDto.check_2,
-      personal_info: userSignupDto.check_3,
-      marketing_email: userSignupDto.check_4,
-      marketing_SMS: userSignupDto.check_5,
-      info_period: userSignupDto.radio1,
+      id: userCreateDto.id,
+      password: userCreateDto.password,
+      phonenumber: userCreateDto.phonenumber,
+      nickname: userCreateDto.nickname,
+      policy: userCreateDto.policy,
+      personal_info: userCreateDto.personal_info,
+      marketing_email: userCreateDto.marketing_email,
+      marketing_SMS: userCreateDto.marketing_SMS,
+      info_period: userCreateDto.info_period,
     });
     try {
       await this.userRepository.save(user);
-      return true;
+      return new UserCreateResponseDto(user);
     } catch (error) {
-      return error;
+      console.error(error);
+      throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -148,16 +151,24 @@ export class UserService {
     return authNum;
   }
 
-  async remove(id: string) {
+  async remove(userDeleteDto: UserDeleteeDto) {
+    const { id, password } = userDeleteDto;
     let user = await this.userRepository.findOneBy({
       id: id,
     });
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    this.userRepository.delete({ id: id });
-    return {
-      result: 'success',
-    };
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+    try {
+      this.userRepository.delete({ id: id });
+      return true;
+    } catch (error) {
+      throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+    }
   }
 }

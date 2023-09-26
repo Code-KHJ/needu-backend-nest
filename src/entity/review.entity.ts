@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Hashtag } from './hashtag.entity';
 
 @Entity({ name: 'Review_Posts' })
 export class Review {
