@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'Corp' })
@@ -17,6 +17,10 @@ export class Corp {
   gugun: string;
 
   @Column()
+  @IsNumber()
+  score: number;
+
+  @Column()
   hashtag_top1: string;
 
   @Column()
@@ -27,4 +31,8 @@ export class Corp {
 
   @Column()
   hashtag_top4: string;
+
+  @Column()
+  @IsNumber()
+  review_cnt: number;
 }
