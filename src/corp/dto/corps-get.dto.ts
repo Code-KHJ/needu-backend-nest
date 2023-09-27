@@ -16,6 +16,10 @@ export class CorpsGetDto {
 
   @IsOptional()
   @IsNumber()
+  score: number;
+
+  @IsOptional()
+  @IsNumber()
   @Type(() => Number)
   @Min(1)
   page: number;
