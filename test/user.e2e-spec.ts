@@ -30,13 +30,10 @@ describe('UserController (e2e)', () => {
   afterEach(async () => {});
 
   describe('로그인 테스트', () => {
-    it('/login (GET): 200', () => {
-      return request(app.getHttpServer()).get('/api/user/login').expect(200);
-    });
 
-    it('/login (POST): 200', () => {
+    it('/api/auth/login (POST): 200', () => {
       return request(app.getHttpServer())
-        .post('/api/user/login')
+        .post('/api/auth/login')
         .send({
           id: 'test@test.com',
           password: 'test1234',
@@ -44,18 +41,18 @@ describe('UserController (e2e)', () => {
         .expect(200);
     });
 
-    it('/login (POST): 500 입력값 없음', () => {
+    it('/api/auth/login (POST): 500 입력값 없음', () => {
       return request(app.getHttpServer())
-        .post('/api/user/login')
+        .post('/api/auth/login')
         .send({
           id: 'test@test.com',
         })
         .expect(500);
     });
 
-    it('/login (POST): 401 계정 정보 불일치', () => {
+    it('/api/auth/login (POST): 401 계정 정보 불일치', () => {
       return request(app.getHttpServer())
-        .post('/api/user/login')
+        .post('/api/auth/login')
         .send({
           id: 'test@test.com',
           password: 'unvalid',

@@ -11,51 +11,51 @@ export class Hashtag {
   @Column()
   review_no: number;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_1: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_2: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_3: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_4: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_5: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_6: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_7: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_8: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_9: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_10: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_11: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_12: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_13: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_14: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_15: string;
 
-  @Column()
+  @Column({ nullable: true })
   hashtag_16: string;
 }

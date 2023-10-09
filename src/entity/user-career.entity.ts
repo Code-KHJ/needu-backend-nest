@@ -21,6 +21,7 @@ export class UserCareer {
   last_date: Date;
 
   @Column()
+  @IsString()
   type: string;
 
   @Column()

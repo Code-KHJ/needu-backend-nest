@@ -1,12 +1,24 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Res } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReviewService } from './review.service';
 import { Response } from 'express';
+import { ReviewWriteDto } from './dto/review-write.dto';
 
 @ApiTags('Review')
 @Controller('/api/review')
 export class ReviewController {
   constructor(private reviewService: ReviewService) {}
+
+  @Post('/:name')
+  @ApiOperation({})
+  @ApiResponse({
+    status: 201,
+    description: '리뷰 작성',
+  })
+  create(@Param('name') name: string, @Body() reviewWriteDto: ReviewWriteDto) {
+    reviewWriteDto.corp_name = name;
+    return this.reviewService.create(reviewWriteDto);
+  }
 
   @Get('/corp/:corp')
   async viewReview(@Param('corp') corp: string, @Res() res: Response) {
