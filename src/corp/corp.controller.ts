@@ -1,9 +1,12 @@
 import { CorpService } from './corp.service';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CorpsGetDto } from './dto/corps-get.dto';
 import { CorpCreateDto } from './dto/corp-create.dto';
 import { CorpUpdateDto } from './dto/corp-update.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { RoleType } from 'src/common/role-type';
+import { Roles } from 'src/common/decorators/role.decorator';
 
 @ApiTags('Corp')
 @Controller('/api/corp')
@@ -30,6 +33,8 @@ export class CorpController {
     return this.corpService.findOne(name);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.VIEW)
   @Post('/')
   @ApiOperation({ summary: '기관 등록' })
   @ApiResponse({
@@ -40,6 +45,8 @@ export class CorpController {
     return this.corpService.create(corpCreateDto);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @Patch('/:name')
   @ApiOperation({ summary: '기관 정보 수정' })
   @ApiResponse({
@@ -51,6 +58,8 @@ export class CorpController {
     return this.corpService.update(corpUpdateDto);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @Delete('/:name')
   @ApiOperation({ summary: '기관 삭제' })
   @ApiResponse({

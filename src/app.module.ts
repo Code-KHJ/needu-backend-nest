@@ -7,6 +7,9 @@ import { RedisModule } from './redis/redis.module';
 import { ReviewModule } from './review/review.module';
 import { UserModule } from './user/user.module';
 import { CorpModule } from './corp/corp.module';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AtGuard } from './common/guards';
 
 @Module({
   imports: [
@@ -27,8 +30,16 @@ import { CorpModule } from './corp/corp.module';
     UserModule,
     ReviewModule,
     CorpModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ConfigService],
+  providers: [
+    AppService,
+    ConfigService,
+    {
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },
+  ],
 })
 export class AppModule {}

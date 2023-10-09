@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../entity/review.entity';
 import { Corp } from '../entity/corp.entity';
 import { Hashtag } from '../entity/hashtag.entity';
+import { ReviewCreateDto } from './dto/review-create.dto';
 
 @Injectable()
 export class ReviewService {
@@ -15,6 +16,17 @@ export class ReviewService {
     @InjectRepository(Hashtag)
     private readonly hashtagRepository: Repository<Hashtag>,
   ) {}
+
+  async create(reviewCreateDto: ReviewCreateDto) {
+    const { corp_name } = reviewCreateDto;
+    const corp = await this.corpRepository.findOneBy({ corp_name: corp_name });
+
+    if (!corp) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const review = await this.reviewRepository.create(reviewCreateDto);
+  }
 
   async findCorp(corpName: string) {
     const result = await this.corpRepository.findOneBy({

@@ -2,7 +2,6 @@ import { Response } from 'express';
 import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
-import { UserLoginDto } from './dto/user-login.dto';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
@@ -21,45 +20,6 @@ export class UserService {
     @Inject('REDIS_CLIENT')
     private readonly redis: Redis,
   ) {}
-  async login(userLoginDto: UserLoginDto) {
-    const { id, password } = userLoginDto;
-    const user = await this.userRepository.findOneBy({
-      id: id,
-    });
-    if (!user) {
-      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
-    }
-
-    const payload = {
-      id: id,
-      nickname: user.nickname,
-    };
-
-    const accessToken = jwt.sign(payload, process.env.JWT_KEY, {
-      issuer: process.env.JWT_ISSUER,
-      algorithm: process.env.JWT_ALGORITHM,
-      expiresIn: process.env.JWT_EXPIRESIN,
-    });
-
-    const refreshToken: string = jwt.sign({}, process.env.JWT_KEY, {
-      issuer: process.env.JWT_ISSUER,
-      algorithm: process.env.JWT_ALGORITHM,
-      expiresIn: process.env.JWT_EXPIRESIN_REFRESH,
-    });
-
-    this.redis.set(id, refreshToken);
-
-    const current = new Date().toISOString().slice(0, 10);
-    user.login_date = new Date(current);
-    await this.userRepository.save(user);
-
-    return { accessToken, refreshToken };
-  }
 
   async create(userCreateDto: UserCreateDto): Promise<UserCreateResponseDto> {
     //아이디 중복 검사
