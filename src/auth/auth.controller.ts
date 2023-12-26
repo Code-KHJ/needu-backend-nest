@@ -3,8 +3,8 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
-import { RtGuard } from 'src/common/guards';
-import { GetCurrentUser, Public } from 'src/common/decorators';
+import { RtGuard } from '../common/guards';
+import { GetCurrentUser, Public } from '../common/decorators';
 
 @ApiTags('Auth')
 @Controller('/api/auth')
@@ -43,7 +43,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Token Refresh' })
   @ApiResponse({
-    status: 201,
+    status: 200,
     description: '토큰 리프레시',
   })
   async refreshToekns(@GetCurrentUser() user, @Res() res: Response) {

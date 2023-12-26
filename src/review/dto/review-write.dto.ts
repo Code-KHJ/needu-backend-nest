@@ -12,6 +12,7 @@ export class ReviewWriteDto extends PickType(Combined, [
   'first_date',
   'last_date',
   'type',
+  'total_score',
   'growth_score',
   'leadership_score',
   'reward_score',
@@ -43,4 +44,7 @@ export class ReviewWriteDto extends PickType(Combined, [
 
   @IsOptional()
   user_id: string;
+
+  @IsOptional()
+  total_score: number;
 }

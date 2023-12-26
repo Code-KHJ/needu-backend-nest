@@ -10,6 +10,7 @@ import { AtGuard } from './common/guards';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
   const port = process.env.PORT || 8000;
 
   app.use(cookieParser());
@@ -28,7 +29,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   app.enableCors({
-    origin: 'http://localhost:8000',
+    origin: ['http://localhost:8000', 'http://localhost:5173'],
     methods: ['GET', 'POST'],
     credentials: true,
   });

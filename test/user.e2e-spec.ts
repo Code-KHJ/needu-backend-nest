@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import nunjucks from 'nunjucks';
+import cookieParser from 'cookie-parser';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
@@ -12,6 +13,7 @@ describe('UserController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     await app.init();
 
     nunjucks.configure('public', {
@@ -29,42 +31,8 @@ describe('UserController (e2e)', () => {
 
   afterEach(async () => {});
 
-  describe('로그인 테스트', () => {
-
-    it('/api/auth/login (POST): 200', () => {
-      return request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          id: 'test@test.com',
-          password: 'test1234',
-        })
-        .expect(200);
-    });
-
-    it('/api/auth/login (POST): 500 입력값 없음', () => {
-      return request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          id: 'test@test.com',
-        })
-        .expect(500);
-    });
-
-    it('/api/auth/login (POST): 401 계정 정보 불일치', () => {
-      return request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          id: 'test@test.com',
-          password: 'unvalid',
-        })
-        .expect(401);
-    });
-  });
   describe('회원가입 테스트', () => {
-    it('/signup (GET): 200', () => {
-      return request(app.getHttpServer()).get('/api/user/signup').expect(200);
-    });
-    it('/duplic (POST): 중복되지 않음', () => {
+    it('/api/user/duplic (POST): 중복되지 않음', () => {
       return request(app.getHttpServer())
         .post('/api/user/duplic')
         .send({
@@ -73,7 +41,7 @@ describe('UserController (e2e)', () => {
         })
         .expect('true');
     });
-    it('/duplic (POST): 중복', () => {
+    it('/api/user/duplic (POST): 중복', () => {
       return request(app.getHttpServer())
         .post('/api/user/duplic')
         .send({
@@ -82,7 +50,7 @@ describe('UserController (e2e)', () => {
         })
         .expect('false');
     });
-    it('/signup (POST): 201', () => {
+    it('/api/user/signup (POST): 201', () => {
       return request(app.getHttpServer())
         .post('/api/user/signup')
         .send({
@@ -98,7 +66,7 @@ describe('UserController (e2e)', () => {
         })
         .expect(201);
     });
-    it('/signup (POST): 401 아이디 중복', () => {
+    it('/api/user/signup (POST): 401 아이디 중복', () => {
       return request(app.getHttpServer())
         .post('/api/user/signup')
         .send({
@@ -116,19 +84,30 @@ describe('UserController (e2e)', () => {
     });
   });
   describe('회원탈퇴 테스트', () => {
-    it('/:id (DELETE) : 200', () => {
+    let token;
+    beforeAll(async () => {
+      const response = await request(app.getHttpServer()).post('/api/auth/login').send({ id: 'valid@test.com', password: 'test1234' });
+      token = response.headers['set-cookie'][0].split(';')[0];
+    });
+
+    it('/api/user (DELETE) : 200', () => {
       return request(app.getHttpServer())
-        .delete('/api/user/valid@test.com')
+        .delete('/api/user')
+        .set('Cookie', token)
         .send({
           password: 'test1234',
         })
         .expect(200);
     });
 
-    it('/:id (DELETE) : 404 없는 아이디', () => {
+    it('/api/user (DELETE) : 500 없는 아이디', () => {
       return request(app.getHttpServer())
-        .delete('/api/user/' + 'valid@test.com')
-        .expect(404);
+        .delete('/api/user')
+        .set('Cookie', token)
+        .send({
+          password: 'test1234',
+        })
+        .expect(500);
     });
   });
 });

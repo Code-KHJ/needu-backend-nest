@@ -3,6 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReviewService } from './review.service';
 import { Response } from 'express';
 import { ReviewWriteDto } from './dto/review-write.dto';
+import { GetCurrentUser } from 'src/common/decorators';
 
 @ApiTags('Review')
 @Controller('/api/review')
@@ -15,8 +16,10 @@ export class ReviewController {
     status: 201,
     description: '리뷰 작성',
   })
-  create(@Param('name') name: string, @Body() reviewWriteDto: ReviewWriteDto) {
+  create(@GetCurrentUser('id') userId: string, @Param('name') name: string, @Body() reviewWriteDto: ReviewWriteDto) {
     reviewWriteDto.corp_name = name;
+    reviewWriteDto.user_id = userId;
+
     return this.reviewService.create(reviewWriteDto);
   }
 

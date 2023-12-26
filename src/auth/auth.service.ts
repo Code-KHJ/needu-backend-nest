@@ -7,7 +7,7 @@ import { JwtPayloadDto } from './dto/jwt-payload.dto';
 import * as jwt from 'jsonwebtoken';
 import { LoginDto } from './dto/login.dto';
 import bcrypt from 'bcrypt';
-import { promisify } from 'util';
+import { JwtResponseDto } from './dto/jwt-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -97,11 +97,12 @@ export class AuthService {
     }
   }
 
-  async validateUser(payload: JwtPayloadDto): Promise<User | null> {
+  async validateUser(payload: JwtPayloadDto): Promise<JwtResponseDto | null> {
     if (!payload.id) {
       return null;
     }
-    return this.userRepository.findOneBy({ id: payload.id });
+    const user = await this.userRepository.findOneBy({ id: payload.id });
+    return new JwtResponseDto(user);
   }
 
   getTokens(payload: JwtPayloadDto) {
