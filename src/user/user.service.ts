@@ -44,7 +44,6 @@ export class UserService {
       personal_info: userCreateDto.personal_info,
       marketing_email: userCreateDto.marketing_email,
       marketing_SMS: userCreateDto.marketing_SMS,
-      info_period: userCreateDto.info_period,
     });
     try {
       await this.userRepository.save(user);
@@ -67,7 +66,7 @@ export class UserService {
   }
 
   async verifyEmail(email) {
-    let target = email.mail;
+    let target = email.email;
     let authNum = Math.random().toString().substring(2, 8);
     let emailTemplate = `
       <html>
@@ -101,14 +100,15 @@ export class UserService {
       html: emailTemplate,
     };
 
-    transporter.sendMail(mailOptions, function (err, info) {
+    await transporter.sendMail(mailOptions, function (err, info) {
       if (err) {
         console.log(err);
+        return err;
       }
       console.log('finish sending : ' + info.response);
       transporter.close();
     });
-    return authNum;
+    return { status: 'completed', authNum: authNum };
   }
 
   async remove(userDeleteDto: UserDeleteeDto) {

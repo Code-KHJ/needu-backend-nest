@@ -37,7 +37,7 @@ export class UserController {
   }
 
   @Public()
-  @Post('/signup/mail')
+  @Post('/verifyemail')
   @ApiOperation({ summary: '회원가입 이메일 인증' })
   @ApiResponse({
     status: 200,
