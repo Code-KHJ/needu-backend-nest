@@ -1,24 +1,16 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
-import { GetCurrentUser, Public } from 'src/common/decorators';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { RoleType } from 'src/common/role-type';
-import { Roles } from 'src/common/decorators/role.decorator';
+import { GetCurrentUser, Public } from '../common/decorators';
 
 @ApiTags('User')
 @Controller('/api/user')
 export class UserController {
   constructor(private userService: UserService) {}
-
-  @Get('/signup')
-  viewSignup(@Res() res: Response) {
-    res.status(HttpStatus.OK).render('views/signup.html');
-  }
 
   @Public()
   @Post('/signup')
@@ -40,11 +32,12 @@ export class UserController {
   })
   async duplic(@Body() userDupicDto: UserDuplicDto, @Res() res: Response) {
     const result = await this.userService.duplic(userDupicDto);
+    console.log(result);
     return res.json(result);
   }
 
   @Public()
-  @Post('/signup/mail')
+  @Post('/verifyemail')
   @ApiOperation({ summary: '회원가입 이메일 인증' })
   @ApiResponse({
     status: 200,
@@ -67,23 +60,19 @@ export class UserController {
   @Post('/updatePw') //put
   updatePw() {}
 
-  @Delete('')
+  @Delete('/')
   @ApiOperation({ summary: '회원탈퇴' })
   @ApiResponse({
     status: 200,
     description: '회원탈퇴 성공',
   })
   async remove(@GetCurrentUser('id') userId: string, @Body() userDeleteDto: UserDeleteeDto, @Res() res: Response) {
+    console.log(userId);
     userDeleteDto.id = userId;
     const result = await this.userService.remove(userDeleteDto);
     if (result) {
       return res.status(HttpStatus.OK).json({ message: '회원탈퇴 성공' });
     }
-  }
-
-  @Get('/login')
-  viewLogin(@Res() res: Response) {
-    res.status(HttpStatus.OK).render('views/login.html');
   }
 
   @Post('/findId')

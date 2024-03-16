@@ -4,15 +4,17 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CorpsGetDto } from './dto/corps-get.dto';
 import { CorpCreateDto } from './dto/corp-create.dto';
 import { CorpUpdateDto } from './dto/corp-update.dto';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { RoleType } from 'src/common/role-type';
-import { Roles } from 'src/common/decorators/role.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { RoleType } from '../common/role-type';
+import { Roles } from '../common/decorators/role.decorator';
+import { Public } from '../common/decorators';
 
 @ApiTags('Corp')
 @Controller('/api/corp')
 export class CorpController {
   constructor(private corpService: CorpService) {}
 
+  @Public()
   @Get('/')
   @ApiOperation({ summary: '기관 전체 조회' })
   @ApiResponse({
@@ -23,6 +25,7 @@ export class CorpController {
     return this.corpService.findAll(corpsGetDto);
   }
 
+  @Public()
   @Get('/:name')
   @ApiOperation({ summary: '기관 조회' })
   @ApiResponse({
@@ -33,8 +36,6 @@ export class CorpController {
     return this.corpService.findOne(name);
   }
 
-  @UseGuards(RolesGuard)
-  @Roles(RoleType.VIEW)
   @Post('/')
   @ApiOperation({ summary: '기관 등록' })
   @ApiResponse({
@@ -59,7 +60,7 @@ export class CorpController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(RoleType.ADMIN)
+  @Roles(RoleType.VIEW)
   @Delete('/:name')
   @ApiOperation({ summary: '기관 삭제' })
   @ApiResponse({

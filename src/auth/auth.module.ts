@@ -5,7 +5,7 @@ import { RtStrategy } from './strategies/rt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { AuthService } from './auth.service';
-import { RedisModule } from 'src/redis/redis.module';
+import { RedisModule } from '../redis/redis.module';
 import { AuthController } from './auth.controller';
 
 @Global()

@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsDateString, IsString } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'user_career' })
@@ -15,9 +15,11 @@ export class UserCareer {
   corp_name: string;
 
   @Column()
+  @IsDateString()
   first_date: Date;
 
   @Column()
+  @IsDateString()
   last_date: Date;
 
   @Column()

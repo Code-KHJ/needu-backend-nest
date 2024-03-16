@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsString, Length, Matches, MinLength, matches } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber, IsString, Length, Matches, MinLength, matches } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'user' })
@@ -28,22 +28,24 @@ export class User {
   nickname: string;
 
   @Column()
+  @IsNumber()
   authority: number;
 
   @Column()
+  @IsBoolean()
   policy: boolean;
 
   @Column()
+  @IsBoolean()
   personal_info: boolean;
 
   @Column()
+  @IsBoolean()
   marketing_email: boolean;
 
   @Column()
+  @IsBoolean()
   marketing_SMS: boolean;
-
-  @Column()
-  info_period: string;
 
   @Column()
   created_date: Date;
