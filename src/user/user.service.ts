@@ -131,4 +131,17 @@ export class UserService {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
   }
+
+  async findId(phone) {
+    const users = await this.userRepository.find({ where: { phonenumber: phone.phone } });
+    if (!users) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const result = users.map(user => ({
+      id: user.id,
+      created_date: user.created_date,
+    }));
+    return result;
+  }
 }

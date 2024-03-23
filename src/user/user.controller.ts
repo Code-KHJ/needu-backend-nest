@@ -75,8 +75,17 @@ export class UserController {
     }
   }
 
-  @Post('/findId')
-  findId() {}
+  @Public()
+  @Post('/find/id')
+  @ApiOperation({ summary: '아이디 찾기' })
+  @ApiResponse({
+    status: 201,
+    description: '아이디 찾기 성공',
+  })
+  async findId(@Body() phone: string, @Res() res: Response) {
+    const result = await this.userService.findId(phone);
+    return res.json(result);
+  }
 
   @Post('/findPw')
   findPw() {}
