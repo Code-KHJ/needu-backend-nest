@@ -8,6 +8,8 @@ import * as jwt from 'jsonwebtoken';
 import { LoginDto } from './dto/login.dto';
 import bcrypt from 'bcrypt';
 import { JwtResponseDto } from './dto/jwt-response.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
+import { KakaoLoginDto } from './dto/kakao-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +45,98 @@ export class AuthService {
     user.login_date = new Date(current);
     await this.userRepository.save(user);
 
-    return { accessToken, refreshToken };
+    const result = {
+      id: user.id,
+      nickname: user.nickname,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+
+    return result;
+  }
+
+  async googleLogin(googleLoginDto: GoogleLoginDto) {
+    const { id, nickname } = googleLoginDto;
+    let user = await this.userRepository.findOne({ where: { id: id } });
+
+    if (!user) {
+      user = this.userRepository.create({
+        id: id,
+        password: null,
+        phonenumber: null,
+        nickname: nickname,
+        policy: true,
+        personal_info: true,
+        marketing_email: true,
+        marketing_SMS: true,
+        google: true,
+      });
+      await this.userRepository.save(user);
+    }
+    if (!user.google) {
+      user.google = true;
+    }
+    const payload: JwtPayloadDto = {
+      id: id,
+      nickname: nickname,
+    };
+
+    const { accessToken, refreshToken } = await this.getTokens(payload);
+
+    const current = new Date().toISOString().slice(0, 10);
+    user.login_date = new Date(current);
+    await this.userRepository.save(user);
+
+    const result = {
+      id: user.id,
+      nickname: user.nickname,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+
+    return result;
+  }
+
+  async kakaoLogin(kakaoLoginDto: KakaoLoginDto) {
+    const { id, nickname, phonenumber } = kakaoLoginDto;
+    let user = await this.userRepository.findOne({ where: { id: id } });
+
+    if (!user) {
+      user = this.userRepository.create({
+        id: id,
+        password: null,
+        phonenumber: phonenumber,
+        nickname: nickname,
+        policy: true,
+        personal_info: true,
+        marketing_email: true,
+        marketing_SMS: true,
+        kakao: true,
+      });
+      await this.userRepository.save(user);
+    }
+    if (!user.kakao) {
+      user.kakao = true;
+    }
+    const payload: JwtPayloadDto = {
+      id: id,
+      nickname: nickname,
+    };
+
+    const { accessToken, refreshToken } = await this.getTokens(payload);
+
+    const current = new Date().toISOString().slice(0, 10);
+    user.login_date = new Date(current);
+    await this.userRepository.save(user);
+
+    const result = {
+      id: user.id,
+      nickname: user.nickname,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+
+    return result;
   }
 
   async logout(userId: string) {

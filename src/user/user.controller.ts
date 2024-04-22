@@ -48,6 +48,18 @@ export class UserController {
     return res.json(result);
   }
 
+  @Public()
+  @Post('/verifyphone')
+  @ApiOperation({ summary: '휴대전화 인증' })
+  @ApiResponse({
+    status: 200,
+    description: '인증 완료',
+  })
+  async verifyEPhone(@Body() phone: object, @Res() res: Response) {
+    const result = await this.userService.verifyPhone(phone);
+    return res.json(result);
+  }
+
   @Put('/update')
   @ApiOperation({ summary: '회원정보 수정' })
   @ApiResponse({
@@ -57,8 +69,19 @@ export class UserController {
   update() {}
 
   /////토큰 기능 구현 완료 후에 토큰 기준으로 처리
-  @Post('/updatePw') //put
-  updatePw() {}
+  @Public()
+  @Put('/update/pw')
+  @ApiOperation({ summary: '비밀번호 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '비밀번호 수정 성공',
+  })
+  async updatePw(@Body() data: object, @Res() res: Response) {
+    const result = await this.userService.updatePw(data);
+    if (result) {
+      return res.status(HttpStatus.OK).json({ message: '비밀번호 수정 성공' });
+    }
+  }
 
   @Delete('/')
   @ApiOperation({ summary: '회원탈퇴' })
@@ -76,14 +99,14 @@ export class UserController {
   }
 
   @Public()
-  @Post('/find/id')
-  @ApiOperation({ summary: '아이디 찾기' })
+  @Post('/find/user')
+  @ApiOperation({ summary: '유저 정보 찾기' })
   @ApiResponse({
     status: 201,
-    description: '아이디 찾기 성공',
+    description: '유저 정보 찾기 성공',
   })
-  async findId(@Body() phone: string, @Res() res: Response) {
-    const result = await this.userService.findId(phone);
+  async findId(@Body() data: object, @Res() res: Response) {
+    const result = await this.userService.findUser(data);
     return res.json(result);
   }
 

@@ -11,6 +11,7 @@ import nodemailer from 'nodemailer';
 import { UserCreateDto } from './dto/user-create.dto';
 import { UserCreateResponseDto } from './dto/user-create-response.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
+import axios from 'axios';
 
 @Injectable()
 export class UserService {
@@ -72,9 +73,9 @@ export class UserService {
       <html>
       <body>
         <div>
-          <h1 style='color:black'>NeedU 회원가입을 환영합니다.</h1>
+          <h1 style='color:black'>안녕하세요 NeedU입니다.</h1>
           <br>
-          <p style='color:black'>회원 가입을 위한 인증번호 입니다.</p>
+          <p style='color:black'>본인 확인을 위한 인증번호 입니다.</p>
           <p style='color:black'>아래의 인증 번호를 입력하여 인증을 완료해주세요.</p>
           <h2>${authNum}</h2>
         </div>
@@ -96,7 +97,7 @@ export class UserService {
     let mailOptions = {
       from: `needu`,
       to: target,
-      subject: '[Needu] 회원가입을 위한 인증번호입니다.',
+      subject: '[Needu] 본인 확인을 위한 인증번호입니다.',
       html: emailTemplate,
     };
 
@@ -108,6 +109,38 @@ export class UserService {
       console.log('finish sending : ' + info.response);
       transporter.close();
     });
+    return { status: 'completed', authNum: authNum };
+  }
+
+  async verifyPhone(phone) {
+    let target = phone.phone;
+    let authNum = Math.random().toString().substring(2, 8);
+    let content = `[Needu] 인증번호는 ${authNum}입니다.`;
+
+    let payload = {
+      tas_id: 'needu.sw@gmail.com',
+      send_type: 'LM',
+      auth_key: 'F1TAQB-KJ9NK5-M02H7X-1BLKWV_856',
+      data: [
+        {
+          user_name: 'user',
+          user_email: target,
+          map_content: content,
+          sender: '07079544468',
+          sender_name: 'Needu',
+          subject: '니쥬 인증번호',
+        },
+      ],
+    };
+    let url = 'https://api.tason.com/tas-api/send';
+    let response = await axios.post(url, payload);
+
+    console.log(response.data['MEM CNT']);
+    if (response.data['MEM CNT'] !== 1) {
+      console.log(response.data);
+      return { status: 'error' };
+    }
+
     return { status: 'completed', authNum: authNum };
   }
 
@@ -132,16 +165,39 @@ export class UserService {
     }
   }
 
-  async findId(phone) {
-    const users = await this.userRepository.find({ where: { phonenumber: phone.phone } });
+  async findUser(data) {
+    const { field, value } = data;
+    const users = await this.userRepository.find({ where: { [field]: value } });
     if (!users) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
 
     const result = users.map(user => ({
       id: user.id,
+      nickname: user.nickname,
       created_date: user.created_date,
     }));
     return result;
+  }
+
+  async updatePw(data) {
+    const { id, field, value } = data;
+    let user = await this.userRepository.findOneBy({
+      id: id,
+    });
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
+    const hashPw = bcrypt.hashSync(value, salt);
+
+    user.password = hashPw;
+    try {
+      await this.userRepository.save(user);
+      return true;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+    }
   }
 }

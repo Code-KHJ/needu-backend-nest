@@ -7,11 +7,13 @@ import { User } from '../entity/user.entity';
 import { AuthService } from './auth.service';
 import { RedisModule } from '../redis/redis.module';
 import { AuthController } from './auth.controller';
+import { KakaoStrategy } from './strategies/kakao.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([User]), PassportModule, RedisModule],
-  providers: [AtStrategy, RtStrategy, AuthService],
+  providers: [AtStrategy, RtStrategy, KakaoStrategy, GoogleStrategy, AuthService],
   exports: [AuthService],
   controllers: [AuthController],
 })
