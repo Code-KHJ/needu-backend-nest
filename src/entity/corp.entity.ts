@@ -1,5 +1,6 @@
 import { IsNumber, IsString } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Review } from './review.entity';
 
 @Entity({ name: 'Corp' })
 export class Corp {
@@ -16,23 +17,9 @@ export class Corp {
   @Column()
   gugun: string;
 
-  @Column()
-  @IsNumber()
-  score: number;
+  @Column({ type: 'json' })
+  hashtag: any;
 
-  @Column()
-  hashtag_top1: string;
-
-  @Column()
-  hashtag_top2: string;
-
-  @Column()
-  hashtag_top3: string;
-
-  @Column()
-  hashtag_top4: string;
-
-  @Column()
-  @IsNumber()
-  review_cnt: number;
+  @OneToMany(() => Review, review => review.corp)
+  reviews: Review[];
 }

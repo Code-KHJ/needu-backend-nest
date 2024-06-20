@@ -1,14 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository, getManager } from 'typeorm';
+import { DataSource, EntityManager, Repository, getManager } from 'typeorm';
 import { Review } from '../entity/review.entity';
 import { Corp } from '../entity/corp.entity';
 import { Hashtag } from '../entity/hashtag.entity';
-import { ReviewCreateDto } from './dto/review-create.dto';
+import { WorkingCreateDto } from './dto/review-create.dto';
 import { ReviewWriteDto } from './dto/review-write.dto';
 import { hash } from 'bcrypt';
 import { CorpService } from 'src/corp/corp.service';
 import { CorpUpdateDto } from 'src/corp/dto/corp-update.dto';
+import { UserService } from 'src/user/user.service';
+import { CareerCreateDto } from 'src/user/dto/career-create.dto';
 
 @Injectable()
 export class ReviewService {
@@ -20,7 +22,9 @@ export class ReviewService {
     @InjectRepository(Hashtag)
     private readonly hashtagRepository: Repository<Hashtag>,
     @InjectEntityManager() private readonly entityManager: EntityManager,
-    private corpService: CorpService,
+    private readonly corpService: CorpService,
+    private readonly userService: UserService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(reviewWriteDto: ReviewWriteDto) {
@@ -62,6 +66,53 @@ export class ReviewService {
     // this.updateCorp(corp_name, topHashtag, rdCorp);
   }
 
+  async createWorkingReview(workingCreateDto: WorkingCreateDto) {
+    if (!workingCreateDto.corp) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const total_score =
+      Math.round(
+        ((workingCreateDto.growth_score +
+          workingCreateDto.leadership_score +
+          workingCreateDto.reward_score +
+          workingCreateDto.worth_score +
+          workingCreateDto.culture_score +
+          workingCreateDto.worklife_score) /
+          6) *
+          10,
+      ) / 10;
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const review = this.reviewRepository.create({ ...workingCreateDto, total_score: total_score });
+      const savedReview = await queryRunner.manager.save(review);
+
+      const careerDto: CareerCreateDto = {
+        user_id: workingCreateDto.user_id,
+        corp_name: workingCreateDto.corp.corp_name,
+        first_date: workingCreateDto.start_date,
+        last_date: workingCreateDto.end_date,
+        type: workingCreateDto.career_type,
+        review_no: savedReview.no,
+      };
+      const career = await this.userService.createCareer(careerDto);
+      await queryRunner.manager.save(career);
+
+      await queryRunner.commitTransaction();
+      return { review: savedReview, career };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+      this.corpService.updateHashtag(workingCreateDto.corp.corp_name);
+    }
+  }
+
   async findCorp(corpName: string) {
     const corp = await this.corpRepository.findOneBy({
       corp_name: corpName,
@@ -71,9 +122,9 @@ export class ReviewService {
 
   async findReview(corpName: string) {
     const result = await this.reviewRepository.findOne({
-      where: {
-        corp_name: corpName,
-      },
+      // where: {
+      //   corp_name: corpName,
+      // },
       order: {
         no: 'DESC',
       },

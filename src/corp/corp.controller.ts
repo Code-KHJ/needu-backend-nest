@@ -8,6 +8,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { RoleType } from '../common/role-type';
 import { Roles } from '../common/decorators/role.decorator';
 import { Public } from '../common/decorators';
+import { CorpsGetWorkingDto } from './dto/corps-get-working.dto';
 
 @ApiTags('Corp')
 @Controller('/api/corp')
@@ -25,6 +26,40 @@ export class CorpController {
     return this.corpService.findAll(corpsGetDto);
   }
 
+  //완료
+  @Public()
+  @Get('/working')
+  @ApiOperation({ summary: '기관 전체 조회 with 현직리뷰' })
+  @ApiResponse({
+    status: 200,
+    description: '전체 조회 성공',
+  })
+  getAllWithWorking(@Query() corpsGetWorkingDto: CorpsGetWorkingDto) {
+    return this.corpService.findAllWorking(corpsGetWorkingDto);
+  }
+  //완료
+  @Public()
+  @Get('working/:name')
+  @ApiOperation({ summary: '기관 조회 with 현직리뷰' })
+  @ApiResponse({
+    status: 200,
+    description: '조회 성공',
+  })
+  getWithWorking(@Param('name') name: string) {
+    return this.corpService.findOneWorking(name);
+  }
+
+  @Public()
+  @Get('/training')
+  @ApiOperation({ summary: '기관 전체 조회 with 실습리뷰' })
+  @ApiResponse({
+    status: 200,
+    description: '전체 조회 성공',
+  })
+  getAllWithTraining(@Query() corpsGetDto: CorpsGetDto) {
+    return this.corpService.findAll(corpsGetDto);
+  }
+
   @Public()
   @Get('/:name')
   @ApiOperation({ summary: '기관 조회' })
@@ -33,6 +68,7 @@ export class CorpController {
     description: '조회 성공',
   })
   getCorp(@Param('name') name: string) {
+    console.log(name);
     return this.corpService.findOne(name);
   }
 

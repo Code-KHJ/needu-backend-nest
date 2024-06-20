@@ -15,12 +15,12 @@ export class UserCareer {
   corp_name: string;
 
   @Column()
-  @IsDateString()
-  first_date: Date;
+  @IsString()
+  first_date: string;
 
   @Column()
-  @IsDateString()
-  last_date: Date;
+  @IsString()
+  last_date: string;
 
   @Column()
   @IsString()
