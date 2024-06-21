@@ -16,7 +16,7 @@ export class CorpController {
   constructor(private corpService: CorpService) {}
 
   @Public()
-  @Get('/')
+  @Get('/find')
   @ApiOperation({ summary: '기관 전체 조회' })
   @ApiResponse({
     status: 200,
@@ -24,6 +24,18 @@ export class CorpController {
   })
   getAllCorps(@Query() corpsGetDto: CorpsGetDto) {
     return this.corpService.findAll(corpsGetDto);
+  }
+
+  @Public()
+  @Get('/find/:name')
+  @ApiOperation({ summary: '기관 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '조회 성공',
+  })
+  getCorp(@Param('name') name: string) {
+    console.log(name);
+    return this.corpService.findOne(name);
   }
 
   //완료
@@ -37,9 +49,10 @@ export class CorpController {
   getAllWithWorking(@Query() corpsGetWorkingDto: CorpsGetWorkingDto) {
     return this.corpService.findAllWorking(corpsGetWorkingDto);
   }
+
   //완료
   @Public()
-  @Get('working/:name')
+  @Get('/working/:name')
   @ApiOperation({ summary: '기관 조회 with 현직리뷰' })
   @ApiResponse({
     status: 200,
@@ -57,19 +70,18 @@ export class CorpController {
     description: '전체 조회 성공',
   })
   getAllWithTraining(@Query() corpsGetDto: CorpsGetDto) {
-    return this.corpService.findAll(corpsGetDto);
+    return this.corpService.findAllTraining();
   }
 
   @Public()
-  @Get('/:name')
-  @ApiOperation({ summary: '기관 조회' })
+  @Get('/training/:name')
+  @ApiOperation({ summary: '기관 조회 with 실습리뷰' })
   @ApiResponse({
     status: 200,
     description: '조회 성공',
   })
-  getCorp(@Param('name') name: string) {
-    console.log(name);
-    return this.corpService.findOne(name);
+  getWithTraining(@Param('name') name: string) {
+    return this.corpService.findOneTraining();
   }
 
   @Post('/')
@@ -96,7 +108,7 @@ export class CorpController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(RoleType.VIEW)
+  @Roles(RoleType.ADMIN)
   @Delete('/:name')
   @ApiOperation({ summary: '기관 삭제' })
   @ApiResponse({

@@ -74,6 +74,14 @@ export class CorpService {
     return result;
   }
 
+  async findOne(name: string) {
+    const corp = await this.corpRepository.findOneBy({ corp_name: name });
+    if (!corp) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    return corp;
+  }
+
   async findAllWorking(corpsGetWorkingDto: CorpsGetWorkingDto) {
     let { name, city, gugun, score, hashtag, order, page } = corpsGetWorkingDto;
     const take = 10;
@@ -142,15 +150,9 @@ export class CorpService {
     return corp;
   }
 
-  async findOne(name: string) {
-    const corp = await this.corpRepository.findOneBy({ corp_name: name });
+  async findAllTraining() {}
 
-    if (!corp) {
-      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
-    }
-
-    return corp;
-  }
+  async findOneTraining() {}
 
   async create(corpCreateDto: CorpCreateDto) {
     try {

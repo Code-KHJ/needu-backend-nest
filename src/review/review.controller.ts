@@ -1,9 +1,7 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReviewService } from './review.service';
-import { Response, response } from 'express';
-import { ReviewWriteDto } from './dto/review-write.dto';
-import { GetCurrentUser } from 'src/common/decorators';
+import { GetCurrentUser, Public } from 'src/common/decorators';
 import { WorkingCreateDto } from './dto/review-create.dto';
 import { CorpService } from 'src/corp/corp.service';
 
@@ -15,6 +13,7 @@ export class ReviewController {
     private corpService: CorpService,
   ) {}
 
+  ///전현직 리뷰
   @Post('/working/:name')
   @ApiOperation({ summary: '전현직자 리뷰 작성' })
   @ApiResponse({
@@ -33,27 +32,62 @@ export class ReviewController {
     return response;
   }
 
-  @Post('/:name')
-  @ApiOperation({})
+  @Patch('/working/:no')
+  @ApiOperation({ summary: '전현직자 리뷰 수정' })
   @ApiResponse({
     status: 201,
-    description: '리뷰 작성',
+    description: '전현직자 리뷰 수정',
   })
-  create(@GetCurrentUser('id') userId: string, @Param('name') name: string, @Body() reviewWriteDto: ReviewWriteDto) {
-    reviewWriteDto.corp_name = name;
-    reviewWriteDto.user_id = userId;
+  async updateWorkingReview() {}
 
-    return this.reviewService.create(reviewWriteDto);
-  }
+  @Delete('/working/:no')
+  @ApiOperation({ summary: '전현직자 리뷰 삭제' })
+  @ApiResponse({
+    status: 201,
+    description: '전현직자 리뷰 삭제',
+  })
+  async deleteWorkingReview() {}
 
-  @Get('/corp/:corp')
-  async viewReview(@Param('corp') corp: string, @Res() res: Response) {
-    const corpData = await this.reviewService.findCorp(corp);
-    if (!corpData) {
-      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
-    }
-    const reviewData = await this.reviewService.findReview(corp);
+  @Public()
+  @Get('/working/:name')
+  @ApiOperation({ summary: '전현직자 리뷰 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '전현직자 리뷰 조회',
+  })
+  async getWorkingReview() {}
 
-    res.status(HttpStatus.OK).render('view/review.detail.html');
-  }
+  ///실습리뷰
+  @Post('/training/:name')
+  @ApiOperation({ summary: '실습 리뷰 작성' })
+  @ApiResponse({
+    status: 201,
+    description: '실습 리뷰 작성',
+  })
+  async createTrainingReview() {}
+
+  @Patch('/training/:no')
+  @ApiOperation({ summary: '실습 리뷰 수정' })
+  @ApiResponse({
+    status: 201,
+    description: '실습 리뷰 수정',
+  })
+  async updateTrainingReview() {}
+
+  @Delete('/training/:no')
+  @ApiOperation({ summary: '실습 리뷰 삭제' })
+  @ApiResponse({
+    status: 201,
+    description: '실습 리뷰 삭제',
+  })
+  async deleteTrainingReview() {}
+
+  @Public()
+  @Get('/training/:name')
+  @ApiOperation({ summary: '실습 리뷰 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 조회',
+  })
+  async getTrainingReview() {}
 }
