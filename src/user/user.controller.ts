@@ -6,6 +6,7 @@ import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { GetCurrentUser, Public } from '../common/decorators';
+import { CareerCreateDto } from './dto/career-create.dto';
 
 @ApiTags('User')
 @Controller('/api/user')
@@ -110,6 +111,14 @@ export class UserController {
     return res.json(result);
   }
 
-  @Post('/findPw')
-  findPw() {}
+  @Post('/career/:userId')
+  @ApiOperation({ summary: '커리어 생성' })
+  @ApiResponse({
+    status: 201,
+    description: '커리어 작성',
+  })
+  async createCareer(@Body() careerCreateDto: CareerCreateDto) {
+    const response = await this.userService.createCareer(careerCreateDto);
+    return;
+  }
 }

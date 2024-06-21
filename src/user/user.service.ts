@@ -4,22 +4,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
-import { Redis } from 'ioredis';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import nodemailer from 'nodemailer';
 import { UserCreateDto } from './dto/user-create.dto';
 import { UserCreateResponseDto } from './dto/user-create-response.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import axios from 'axios';
+import { CareerCreateDto } from './dto/career-create.dto';
+import { UserCareer } from 'src/entity/user-career.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @Inject('REDIS_CLIENT')
-    private readonly redis: Redis,
+    @InjectRepository(UserCareer)
+    private readonly careerRepository: Repository<UserCareer>,
   ) {}
 
   async create(userCreateDto: UserCreateDto): Promise<UserCreateResponseDto> {
@@ -116,7 +116,7 @@ export class UserService {
     let target = phone.phone;
     let authNum = Math.random().toString().substring(2, 8);
     let content = `[Needu] 인증번호는 ${authNum}입니다.`;
-
+    console.log(authNum);
     let payload = {
       tas_id: 'needu.sw@gmail.com',
       send_type: 'LM',
@@ -199,5 +199,13 @@ export class UserService {
       console.log(error);
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async createCareer(createCareerDto: CareerCreateDto) {
+    if (!createCareerDto.user_id || !createCareerDto.corp_name) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    return this.careerRepository.create(createCareerDto);
   }
 }

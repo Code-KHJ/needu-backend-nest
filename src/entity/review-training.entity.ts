@@ -1,23 +1,38 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { IsArray, IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
-import { Corp } from './corp.entity';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 
-@Entity({ name: 'Review_Posts' })
-export class Review {
+@Entity({ name: 'review_posts_training' })
+export class ReviewTraning {
   @PrimaryGeneratedColumn({ name: 'No' })
   no: number;
 
-  @ManyToOne(() => Corp, corp => corp.reviews)
-  @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
-  corp: Corp;
+  @Column({ name: 'Corp_name' })
+  @IsString()
+  corp_name: string;
 
   @Column()
   @IsString()
   user_id: string;
 
-  @Column({ type: 'json' })
-  @IsArray()
-  hashtag: string[];
+  @Column()
+  @IsNumber()
+  year: number;
+
+  @Column()
+  @IsString()
+  season: string;
+
+  @Column()
+  @IsString()
+  cost: string;
+
+  @Column()
+  @IsString()
+  number_of_pparcitipants: string;
+
+  @Column()
+  @IsString()
+  duration: string;
 
   @Column('decimal', { precision: 3, scale: 1 })
   @IsNumber()
@@ -29,23 +44,15 @@ export class Review {
 
   @Column('decimal', { precision: 3, scale: 1 })
   @IsNumber()
-  leadership_score: number;
-
-  @Column('decimal', { precision: 3, scale: 1 })
-  @IsNumber()
-  reward_score: number;
-
-  @Column('decimal', { precision: 3, scale: 1 })
-  @IsNumber()
   worth_score: number;
 
   @Column('decimal', { precision: 3, scale: 1 })
   @IsNumber()
-  culture_score: number;
+  recommend_score: number;
 
   @Column('decimal', { precision: 3, scale: 1 })
   @IsNumber()
-  worklife_score: number;
+  supervisor_score: number;
 
   @Column()
   @MinLength(1)

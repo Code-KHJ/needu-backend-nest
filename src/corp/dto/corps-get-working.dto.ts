@@ -1,7 +1,8 @@
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { type } from 'os';
 
-export class CorpsGetDto {
+export class CorpsGetWorkingDto {
   @IsOptional()
   @IsString()
   name: string;
@@ -15,11 +16,11 @@ export class CorpsGetDto {
   gugun: string;
 
   @IsOptional()
-  @IsNumber()
+  // @IsNumber()
   score: number;
 
   @IsOptional()
-  hashtag: JSON;
+  hashtag: any;
 
   @IsOptional()
   @IsString()
