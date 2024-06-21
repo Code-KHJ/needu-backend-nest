@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put, Patch } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -121,4 +121,12 @@ export class UserController {
     const response = await this.userService.createCareer(careerCreateDto);
     return;
   }
+
+  @Patch('/career/:no')
+  @ApiOperation({ summary: '커리어 수정' })
+  @ApiResponse({
+    status: 201,
+    description: '커리어 수정',
+  })
+  async updateCareer() {}
 }
