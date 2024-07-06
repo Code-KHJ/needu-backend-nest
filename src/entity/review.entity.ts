@@ -1,13 +1,15 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsArray, IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 import { Corp } from './corp.entity';
+import { UserCareer } from './user-career.entity';
+import { BlindType } from './blind-type.entity';
 
 @Entity({ name: 'Review_Posts' })
 export class Review {
   @PrimaryGeneratedColumn({ name: 'No' })
   no: number;
 
-  @ManyToOne(() => Corp, corp => corp.reviews)
+  @ManyToOne(() => Corp, corp => corp.reviews, { eager: true })
   @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
   corp: Corp;
 
@@ -75,4 +77,14 @@ export class Review {
 
   @Column()
   blind: boolean;
+
+  @Column()
+  is_del: boolean;
+
+  @OneToOne(() => UserCareer, userCareer => userCareer.review)
+  userCareer: UserCareer;
+
+  @ManyToOne(() => BlindType)
+  @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
+  blindType: BlindType;
 }

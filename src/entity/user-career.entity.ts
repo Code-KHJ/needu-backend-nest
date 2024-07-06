@@ -1,5 +1,6 @@
 import { IsDateString, IsString } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Review } from './review.entity';
 
 @Entity({ name: 'user_career' })
 export class UserCareer {
@@ -28,4 +29,11 @@ export class UserCareer {
 
   @Column()
   review_no: number;
+
+  @Column()
+  is_del: boolean;
+
+  @OneToOne(() => Review, review => review.userCareer)
+  @JoinColumn({ name: 'review_no', referencedColumnName: 'no' })
+  review: Review;
 }

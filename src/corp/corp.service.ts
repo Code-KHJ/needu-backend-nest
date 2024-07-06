@@ -142,7 +142,7 @@ export class CorpService {
       .createQueryBuilder('c')
       .select(['c.no AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews', 'rp')
-      .addSelect(['COUNT(rp.no) AS cnt', 'ROUND(AVG(rp.total_score),1) as avg'])
+      .addSelect(['COUNT(rp.no) AS cnt', 'ROUND(AVG(rp.total_score),1) AS avg'])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')
       .getRawOne();
@@ -152,7 +152,18 @@ export class CorpService {
 
   async findAllTraining() {}
 
-  async findOneTraining() {}
+  async findOneTraining(name: string) {
+    const corp = await this.corpRepository
+      .createQueryBuilder('c')
+      .select(['c.no AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun'])
+      .leftJoin('c.reviews_training', 'rt')
+      .addSelect(['COUNT(rt.no) AS cnt', 'ROUND(AVG(rt.total_score),1) AS avg'])
+      .where('c.corp_name = :name', { name: name })
+      .groupBy('c.corp_name')
+      .getRawOne();
+
+    return corp;
+  }
 
   async create(corpCreateDto: CorpCreateDto) {
     try {

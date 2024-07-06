@@ -81,7 +81,7 @@ export class CorpController {
     description: '조회 성공',
   })
   getWithTraining(@Param('name') name: string) {
-    return this.corpService.findOneTraining();
+    return this.corpService.findOneTraining(name);
   }
 
   @Post('/')

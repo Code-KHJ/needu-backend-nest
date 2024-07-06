@@ -208,4 +208,11 @@ export class UserService {
 
     return this.careerRepository.create(createCareerDto);
   }
+
+  async deleteCareer(review_no: number) {
+    const career = await this.careerRepository.findOneBy({ review_no: review_no });
+    career.is_del = true;
+
+    return career;
+  }
 }

@@ -9,9 +9,10 @@ import { CorpService } from 'src/corp/corp.service';
 import { UserService } from 'src/user/user.service';
 import { UserCareer } from 'src/entity/user-career.entity';
 import { User } from 'src/entity/user.entity';
+import { ReviewTraning } from 'src/entity/review-training.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, Hashtag, Corp, UserCareer, User])],
+  imports: [TypeOrmModule.forFeature([Review, ReviewTraning, Hashtag, Corp, UserCareer, User])],
   providers: [ReviewService, CorpService, UserService],
   controllers: [ReviewController],
 })

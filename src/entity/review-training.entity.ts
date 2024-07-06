@@ -1,38 +1,40 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
+import { Corp } from './corp.entity';
+import { BlindType } from './blind-type.entity';
 
 @Entity({ name: 'review_posts_training' })
 export class ReviewTraning {
   @PrimaryGeneratedColumn({ name: 'No' })
   no: number;
 
-  @Column({ name: 'Corp_name' })
-  @IsString()
-  corp_name: string;
+  @ManyToOne(() => Corp, corp => corp.reviews_training)
+  @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
+  corp: Corp;
 
   @Column()
   @IsString()
   user_id: string;
 
   @Column()
-  @IsNumber()
-  year: number;
+  @IsString()
+  year: string;
 
   @Column()
   @IsString()
   season: string;
 
   @Column()
-  @IsString()
-  cost: string;
+  @IsNumber()
+  cost: number;
 
   @Column()
-  @IsString()
-  number_of_pparcitipants: string;
+  @IsNumber()
+  number_of_participants: number;
 
   @Column()
-  @IsString()
-  duration: string;
+  @IsNumber()
+  duration: number;
 
   @Column('decimal', { precision: 3, scale: 1 })
   @IsNumber()
@@ -82,4 +84,11 @@ export class ReviewTraning {
 
   @Column()
   blind: boolean;
+
+  @Column()
+  is_del: boolean;
+
+  @ManyToOne(() => BlindType)
+  @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
+  blindType: BlindType;
 }

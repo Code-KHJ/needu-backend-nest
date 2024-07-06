@@ -48,6 +48,7 @@ export class AuthService {
     const result = {
       id: user.id,
       nickname: user.nickname,
+      authority: user.authority,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
