@@ -1,6 +1,6 @@
 import { IsNumber, IsString } from 'class-validator';
 
-export class WorkingDeleteDto {
+export class DeleteReviewDto {
   @IsNumber()
   review_no: number;
   @IsString()

@@ -80,7 +80,7 @@ describe('UserService', () => {
 
       const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
       const existingUser = new User();
-      existingUser.id = 'test@test.com';
+      existingUser.user_id = 'test@test.com';
       existingUser.password = await bcrypt.hashSync('validpassword', salt);
 
       jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(existingUser);
@@ -102,14 +102,14 @@ describe('UserService', () => {
 
       const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
       const existingUser = new User();
-      existingUser.id = 'test@test.com';
+      existingUser.user_id = 'test@test.com';
       existingUser.nickname = '니쥬';
       existingUser.password = await bcrypt.hashSync('validpassword', salt);
 
       jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(existingUser);
 
       const payload = {
-        id: existingUser.id,
+        id: existingUser.user_id,
         nickname: existingUser.nickname,
       };
       const accessToken: string = jwt.sign(payload, process.env.JWT_KEY, {

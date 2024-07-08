@@ -3,13 +3,13 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'user' })
 export class User {
-  @PrimaryGeneratedColumn({ name: 'No' })
-  no: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   @IsEmail()
   @Length(1, 40)
-  id: string;
+  user_id: string;
 
   @Column()
   @IsString()

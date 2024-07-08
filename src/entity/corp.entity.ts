@@ -5,8 +5,8 @@ import { ReviewTraning } from './review-training.entity';
 
 @Entity({ name: 'Corp' })
 export class Corp {
-  @PrimaryGeneratedColumn({ name: 'No' })
-  no: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ name: 'Corp_name' })
   @IsString()

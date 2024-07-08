@@ -1,4 +1,4 @@
 export class JwtPayloadDto {
-  id: string;
+  user_id: string;
   nickname: string;
 }

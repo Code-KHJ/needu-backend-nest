@@ -5,7 +5,7 @@ import { Review } from './review.entity';
 @Entity({ name: 'user_career' })
 export class UserCareer {
   @PrimaryGeneratedColumn()
-  no: number;
+  id: number;
 
   @Column()
   @IsString()
@@ -34,6 +34,6 @@ export class UserCareer {
   is_del: boolean;
 
   @OneToOne(() => Review, review => review.userCareer)
-  @JoinColumn({ name: 'review_no', referencedColumnName: 'no' })
+  @JoinColumn({ name: 'review_no', referencedColumnName: 'id' })
   review: Review;
 }

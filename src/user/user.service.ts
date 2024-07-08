@@ -26,7 +26,7 @@ export class UserService {
     //아이디 중복 검사
     const userDuplicDto = new UserDuplicDto();
     userDuplicDto.item = 'id';
-    userDuplicDto.value = userCreateDto.id;
+    userDuplicDto.value = userCreateDto.user_id;
     const checkDuplicId = await this.duplic(userDuplicDto);
     if (!checkDuplicId) {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
@@ -37,7 +37,7 @@ export class UserService {
     userCreateDto.password = hashPw;
 
     const user = this.userRepository.create({
-      id: userCreateDto.id,
+      user_id: userCreateDto.user_id,
       password: userCreateDto.password,
       phonenumber: userCreateDto.phonenumber,
       nickname: userCreateDto.nickname,
@@ -145,9 +145,9 @@ export class UserService {
   }
 
   async remove(userDeleteDto: UserDeleteeDto) {
-    const { id, password } = userDeleteDto;
+    const { user_id, password } = userDeleteDto;
     let user = await this.userRepository.findOneBy({
-      id: id,
+      user_id: user_id,
     });
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -158,7 +158,7 @@ export class UserService {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
     try {
-      this.userRepository.delete({ id: id });
+      this.userRepository.delete({ user_id: user_id });
       return true;
     } catch (error) {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
@@ -173,7 +173,7 @@ export class UserService {
     }
 
     const result = users.map(user => ({
-      id: user.id,
+      id: user.user_id,
       nickname: user.nickname,
       created_date: user.created_date,
     }));
@@ -183,7 +183,7 @@ export class UserService {
   async updatePw(data) {
     const { id, field, value } = data;
     let user = await this.userRepository.findOneBy({
-      id: id,
+      user_id: id,
     });
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);

@@ -2,7 +2,7 @@ import { OmitType } from '@nestjs/swagger';
 import { Corp } from '../../entity/corp.entity';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class CorpUpdateDto extends OmitType(Corp, ['no', 'city', 'gugun']) {
+export class CorpUpdateDto extends OmitType(Corp, ['id', 'city', 'gugun']) {
   @IsOptional()
   @IsString()
   corp_name: string;

@@ -22,7 +22,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { id, password } = loginDto;
-    const user = await this.userRepository.findOne({ where: { id: id } });
+    const user = await this.userRepository.findOne({ where: { user_id: id } });
 
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     const payload: JwtPayloadDto = {
-      id: id,
+      user_id: id,
       nickname: user.nickname,
     };
 
@@ -46,7 +46,7 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const result = {
-      id: user.id,
+      id: user.user_id,
       nickname: user.nickname,
       authority: user.authority,
       accessToken: accessToken,
@@ -58,11 +58,11 @@ export class AuthService {
 
   async googleLogin(googleLoginDto: GoogleLoginDto) {
     const { id, nickname } = googleLoginDto;
-    let user = await this.userRepository.findOne({ where: { id: id } });
+    let user = await this.userRepository.findOne({ where: { user_id: id } });
 
     if (!user) {
       user = this.userRepository.create({
-        id: id,
+        user_id: id,
         password: null,
         phonenumber: null,
         nickname: nickname,
@@ -78,7 +78,7 @@ export class AuthService {
       user.google = true;
     }
     const payload: JwtPayloadDto = {
-      id: id,
+      user_id: id,
       nickname: nickname,
     };
 
@@ -89,7 +89,7 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const result = {
-      id: user.id,
+      id: user.user_id,
       nickname: user.nickname,
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -100,11 +100,11 @@ export class AuthService {
 
   async kakaoLogin(kakaoLoginDto: KakaoLoginDto) {
     const { id, nickname, phonenumber } = kakaoLoginDto;
-    let user = await this.userRepository.findOne({ where: { id: id } });
+    let user = await this.userRepository.findOne({ where: { user_id: id } });
 
     if (!user) {
       user = this.userRepository.create({
-        id: id,
+        user_id: id,
         password: null,
         phonenumber: phonenumber,
         nickname: nickname,
@@ -120,7 +120,7 @@ export class AuthService {
       user.kakao = true;
     }
     const payload: JwtPayloadDto = {
-      id: id,
+      user_id: id,
       nickname: nickname,
     };
 
@@ -131,7 +131,7 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const result = {
-      id: user.id,
+      id: user.user_id,
       nickname: user.nickname,
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -149,7 +149,7 @@ export class AuthService {
   }
 
   async refresh(userId: string, rt: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({ where: { user_id: userId } });
 
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -162,7 +162,7 @@ export class AuthService {
     }
 
     const payload: JwtPayloadDto = {
-      id: user.id,
+      user_id: user.user_id,
       nickname: user.nickname,
     };
 
@@ -192,10 +192,10 @@ export class AuthService {
   }
 
   async validateUser(payload: JwtPayloadDto): Promise<JwtResponseDto | null> {
-    if (!payload.id) {
+    if (!payload.user_id) {
       return null;
     }
-    const user = await this.userRepository.findOneBy({ id: payload.id });
+    const user = await this.userRepository.findOneBy({ user_id: payload.user_id });
     return new JwtResponseDto(user);
   }
 
@@ -206,13 +206,13 @@ export class AuthService {
       expiresIn: process.env.JWT_EXPIRESIN,
     });
 
-    const refreshToken: string = jwt.sign({ id: payload.id }, process.env.JWT_KEY, {
+    const refreshToken: string = jwt.sign({ id: payload.user_id }, process.env.JWT_KEY, {
       issuer: process.env.JWT_ISSUER,
       algorithm: process.env.JWT_ALGORITHM,
       expiresIn: process.env.JWT_EXPIRESIN_REFRESH,
     });
 
-    this.redis.set(payload.id, refreshToken);
+    this.redis.set(payload.user_id, refreshToken);
 
     return { accessToken, refreshToken };
   }

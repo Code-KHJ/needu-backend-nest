@@ -91,8 +91,7 @@ export class UserController {
     description: '회원탈퇴 성공',
   })
   async remove(@GetCurrentUser('id') userId: string, @Body() userDeleteDto: UserDeleteeDto, @Res() res: Response) {
-    console.log(userId);
-    userDeleteDto.id = userId;
+    userDeleteDto.user_id = userId;
     const result = await this.userService.remove(userDeleteDto);
     if (result) {
       return res.status(HttpStatus.OK).json({ message: '회원탈퇴 성공' });

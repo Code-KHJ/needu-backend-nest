@@ -11,7 +11,7 @@ import { CareerCreateDto } from 'src/user/dto/career-create.dto';
 import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewTraning } from 'src/entity/review-training.entity';
 import { LikeDto } from './dto/review-like.dto';
-import { WorkingDeleteDto } from './dto/review-delete.dto';
+import { DeleteReviewDto } from './dto/review-delete.dto';
 
 @Injectable()
 export class ReviewService {
@@ -62,7 +62,7 @@ export class ReviewService {
         first_date: workingCreateDto.start_date,
         last_date: workingCreateDto.end_date,
         type: workingCreateDto.career_type,
-        review_no: savedReview.no,
+        review_no: savedReview.id,
       };
       const career = await this.userService.createCareer(careerDto);
       await queryRunner.manager.save(career);
@@ -87,9 +87,10 @@ export class ReviewService {
       ],
       relations: ['userCareer'],
       order: {
-        no: 'DESC',
+        id: 'DESC',
       },
     });
+    console.log(reviews);
     return reviews;
   }
 
@@ -105,23 +106,25 @@ export class ReviewService {
       .addSelect('AVG(r.culture_score)', 'culture_score')
       .addSelect('AVG(r.worklife_score)', 'worklife_score')
       .where('r.corp_name = :corpname', { corpname })
+      .andWhere('r.is_del IS NULL OR r.is_del <> 1')
       .getRawOne();
+    console.log(result);
 
     return result;
   }
 
   // 전현직 리뷰 삭제
-  async deleteWorkingReview(userId: string, workingDeleteDto: WorkingDeleteDto) {
-    if (userId != workingDeleteDto.user_id) {
+  async deleteWorkingReview(userId: string, deleteReviewDto: DeleteReviewDto) {
+    if (userId != deleteReviewDto.user_id) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
     const review = await this.reviewRepository.findOneBy({
-      no: workingDeleteDto.review_no,
+      id: deleteReviewDto.review_no,
     });
     if (!review) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    const career = await this.userService.deleteCareer(workingDeleteDto.review_no);
+    const career = await this.userService.deleteCareer(deleteReviewDto.review_no);
 
     review.modified_date = new Date();
     review.is_del = true;
@@ -170,11 +173,71 @@ export class ReviewService {
     }
   }
 
+  // 기관명으로 실습 리뷰 조회
+  async findTrainingReviews(corpname: string) {
+    const reviews = await this.reviewTrainingRepository.find({
+      where: [
+        { corp: { corp_name: corpname }, is_del: false },
+        { corp: { corp_name: corpname }, is_del: IsNull() },
+      ],
+      order: {
+        id: 'DESC',
+      },
+    });
+    return reviews;
+  }
+
+  // 기관명으로 실습 리뷰 평점 조회
+  async getTrainingScore(corpname: string) {
+    const result = await this.reviewTrainingRepository
+      .createQueryBuilder('r')
+      .select('AVG(r.total_score)', 'total_score')
+      .addSelect('AVG(r.growth_score)', 'growth_score')
+      .addSelect('AVG(r.worth_score)', 'worth_score')
+      .addSelect('AVG(r.recommend_score)', 'recommend_score')
+      .addSelect('AVG(r.supervisor_score)', 'supervisor_score')
+      .where('r.corp_name = :corpname', { corpname })
+      .andWhere('r.is_del IS NULL OR r.is_del <> 1')
+      .getRawOne();
+
+    return result;
+  }
+
+  // 실습 리뷰 삭제
+  async deleteTrainingReview(userId: string, deleteReviewDto: DeleteReviewDto) {
+    if (userId != deleteReviewDto.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+    const review = await this.reviewTrainingRepository.findOneBy({
+      id: deleteReviewDto.review_no,
+    });
+    if (!review) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    review.modified_date = new Date();
+    review.is_del = true;
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      await queryRunner.manager.save(review);
+      await queryRunner.commitTransaction();
+      return { msg: '삭제완료' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   // 리뷰 좋아요
   async updateLike(likeDto: LikeDto) {
     if (likeDto.type == 'working') {
       const review = await this.reviewRepository.findOneBy({
-        no: likeDto.review_no,
+        id: likeDto.review_no,
       });
       if (!review) {
         throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -193,7 +256,7 @@ export class ReviewService {
     }
     if (likeDto.type == 'training') {
       const review = await this.reviewTrainingRepository.findOneBy({
-        no: likeDto.review_no,
+        id: likeDto.review_no,
       });
 
       if (!review) {

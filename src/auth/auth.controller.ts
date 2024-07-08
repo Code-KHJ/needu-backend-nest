@@ -63,7 +63,7 @@ export class AuthController {
     description: '토큰 리프레시',
   })
   async refreshToekns(@GetCurrentUser() user, @Res() res: Response) {
-    const { accessToken, refreshToken } = await this.authService.refresh(user.id, user.refreshToken);
+    const { accessToken, refreshToken } = await this.authService.refresh(user.user_id, user.refreshToken);
 
     this.setCookies(accessToken, refreshToken, res);
 

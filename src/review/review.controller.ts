@@ -6,7 +6,7 @@ import { WorkingCreateDto } from './dto/review-create.dto';
 import { CorpService } from 'src/corp/corp.service';
 import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { LikeDto } from './dto/review-like.dto';
-import { WorkingDeleteDto } from './dto/review-delete.dto';
+import { DeleteReviewDto } from './dto/review-delete.dto';
 
 @ApiTags('Review')
 @Controller('/api/review')
@@ -29,7 +29,7 @@ export class ReviewController {
     workingCreateDto.user_id = userId;
 
     const response = await this.reviewService.createWorkingReview(workingCreateDto);
-    if (response.review.no == null || response.career.no == null) {
+    if (response.review.id == null || response.career.id == null) {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
     return response;
@@ -49,8 +49,8 @@ export class ReviewController {
     status: 201,
     description: '전현직자 리뷰 삭제',
   })
-  async deleteWorkingReview(@GetCurrentUser('id') userId: string, @Body() workingDeleteDto: WorkingDeleteDto) {
-    const response = await this.reviewService.deleteWorkingReview(userId, workingDeleteDto);
+  async deleteWorkingReview(@GetCurrentUser('id') userId: string, @Body() deleteReviewDto: DeleteReviewDto) {
+    const response = await this.reviewService.deleteWorkingReview(userId, deleteReviewDto);
 
     return response;
   }
@@ -93,7 +93,7 @@ export class ReviewController {
     trainingCreateDto.corp = corp;
     trainingCreateDto.user_id = userId;
     const response = await this.reviewService.createTrainingReview(trainingCreateDto);
-    if (!response.review.no) {
+    if (!response.review.id) {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
     return response;
@@ -107,13 +107,17 @@ export class ReviewController {
   })
   async updateTrainingReview() {}
 
-  @Delete('/training/:no')
+  @Delete('/training')
   @ApiOperation({ summary: '실습 리뷰 삭제' })
   @ApiResponse({
     status: 201,
     description: '실습 리뷰 삭제',
   })
-  async deleteTrainingReview() {}
+  async deleteTrainingReview(@GetCurrentUser('id') userId: string, @Body() deleteReviewDto: DeleteReviewDto) {
+    const response = await this.reviewService.deleteTrainingReview(userId, deleteReviewDto);
+
+    return response;
+  }
 
   @Public()
   @Get('/training/:name')
@@ -122,7 +126,24 @@ export class ReviewController {
     status: 200,
     description: '실습 리뷰 조회',
   })
-  async getTrainingReview() {}
+  async getTrainingReview(@Param('name') name: string) {
+    const response = await this.reviewService.findTrainingReviews(name);
+
+    return response;
+  }
+
+  @Public()
+  @Get('/training/score/:name')
+  @ApiOperation({ summary: '실습 리뷰 점수 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 점수 조회',
+  })
+  async getTrainingScore(@Param('name') name: string) {
+    const response = await this.reviewService.getTrainingScore(name);
+
+    return response;
+  }
 
   // 리뷰 좋아요
   @Patch('/like')

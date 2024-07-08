@@ -5,8 +5,8 @@ import { BlindType } from './blind-type.entity';
 
 @Entity({ name: 'review_posts_training' })
 export class ReviewTraning {
-  @PrimaryGeneratedColumn({ name: 'No' })
-  no: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @ManyToOne(() => Corp, corp => corp.reviews_training)
   @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })

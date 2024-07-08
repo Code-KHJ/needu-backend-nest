@@ -46,7 +46,7 @@ export class CorpService {
       },
       take,
       skip,
-      order: { no: 'ASC' },
+      order: { id: 'ASC' },
     };
 
     if (!score) {
@@ -58,7 +58,7 @@ export class CorpService {
         },
         take,
         skip,
-        order: { no: 'ASC' },
+        order: { id: 'ASC' },
       };
       return;
     }
@@ -67,7 +67,7 @@ export class CorpService {
     const result: CorpsGetResponseDto[] = [];
 
     for (const corp of corps) {
-      const postItem = new CorpsGetResponseDto(corp.no, corp.corp_name, corp.city, corp.gugun);
+      const postItem = new CorpsGetResponseDto(corp.id, corp.corp_name, corp.city, corp.gugun);
       result.push(postItem);
     }
 
@@ -108,9 +108,9 @@ export class CorpService {
 
     const queryBuilder = await this.corpRepository
       .createQueryBuilder('c')
-      .select(['c.no AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
+      .select(['c.id AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews', 'rp')
-      .addSelect(['COUNT(rp.no) AS cnt', 'ROUND(AVG(rp.total_score),1) as avg'])
+      .addSelect(['COUNT(rp.id) AS cnt', 'ROUND(AVG(rp.total_score),1) as avg'])
       .where('c.corp_name LIKE :name', { name: `%${name}%` })
       .andWhere('c.city LIKE :city', { city: `%${city}%` })
       .andWhere('c.gugun LIKE :gugun', { gugun: `%${gugun}%` });
@@ -130,7 +130,7 @@ export class CorpService {
     const result: CorpsGetWorkingResponseDto[] = [];
 
     for (const corp of corps) {
-      const postItem = new CorpsGetWorkingResponseDto(corp.no, corp.corp_name, corp.city, corp.gugun, corp.hashtag, corp.cnt, corp.avg);
+      const postItem = new CorpsGetWorkingResponseDto(corp.id, corp.corp_name, corp.city, corp.gugun, corp.hashtag, corp.cnt, corp.avg);
       result.push(postItem);
     }
 
@@ -140,9 +140,12 @@ export class CorpService {
   async findOneWorking(name: string) {
     const corp = await this.corpRepository
       .createQueryBuilder('c')
-      .select(['c.no AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
+      .select(['c.id AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews', 'rp')
-      .addSelect(['COUNT(rp.no) AS cnt', 'ROUND(AVG(rp.total_score),1) AS avg'])
+      .addSelect([
+        'COUNT(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.total_score ELSE 0 END),1) AS avg',
+      ])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')
       .getRawOne();
@@ -155,13 +158,17 @@ export class CorpService {
   async findOneTraining(name: string) {
     const corp = await this.corpRepository
       .createQueryBuilder('c')
-      .select(['c.no AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun'])
+      .select(['c.id AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews_training', 'rt')
-      .addSelect(['COUNT(rt.no) AS cnt', 'ROUND(AVG(rt.total_score),1) AS avg'])
+      .addSelect([
+        'COUNT(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.total_score ELSE 0 END),1) AS avg',
+      ])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')
       .getRawOne();
 
+    console.log(corp);
     return corp;
   }
 
