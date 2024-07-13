@@ -1,5 +1,7 @@
 import { IsBoolean, IsEmail, IsNumber, IsString, Length, Matches, MinLength } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Review } from './review.entity';
+import { ReviewTraning } from './review-training.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -63,4 +65,10 @@ export class User {
   @Column()
   @IsString()
   kakao: boolean;
+
+  @OneToMany(() => Review, review => review.user)
+  reviews: Review[];
+
+  @OneToMany(() => ReviewTraning, review => review.user)
+  reviewsTraining: ReviewTraning[];
 }

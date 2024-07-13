@@ -15,6 +15,9 @@ import { DeleteReviewDto } from './dto/review-delete.dto';
 import { ReviewLike } from 'src/entity/review-like.entity';
 import { ReviewTrainingLike } from 'src/entity/review-training-like.entity';
 import { UserCareer } from 'src/entity/user-career.entity';
+import { User } from 'src/entity/user.entity';
+import { ReviewsGetResponseDto } from './dto/review-get-response.dto';
+import { ReviewsTrainingGetResponseDto } from './dto/review-training-get-response.dto';
 
 @Injectable()
 export class ReviewService {
@@ -88,16 +91,14 @@ export class ReviewService {
         { corp: { corp_name: corpname }, is_del: false },
         { corp: { corp_name: corpname }, is_del: IsNull() },
       ],
-      relations: ['userCareer', 'reviewLikes'],
+      relations: ['userCareer', 'reviewLikes', 'user'],
       order: {
         id: 'DESC',
       },
     });
+    const reviewsDto = reviews.map(review => new ReviewsGetResponseDto(review));
 
-    reviews.forEach(review => {
-      review.likes = (review.likes || 0) + review.reviewLikes.length;
-    });
-    return reviews;
+    return reviewsDto;
   }
 
   // 리뷰 no 으로 전현직 리뷰 조회
@@ -262,16 +263,14 @@ export class ReviewService {
         { corp: { corp_name: corpname }, is_del: false },
         { corp: { corp_name: corpname }, is_del: IsNull() },
       ],
-      relations: ['reviewTrainingLikes'],
+      relations: ['reviewTrainingLikes', 'user'],
       order: {
         id: 'DESC',
       },
     });
+    const reviewsDto = reviews.map(review => new ReviewsTrainingGetResponseDto(review));
 
-    reviews.forEach(review => {
-      review.likes = (review.likes || 0) + review.reviewTrainingLikes.length;
-    });
-    return reviews;
+    return reviewsDto;
   }
 
   // 리뷰 no 으로 실습 리뷰 조회

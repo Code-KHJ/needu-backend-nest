@@ -4,6 +4,7 @@ import { Corp } from './corp.entity';
 import { UserCareer } from './user-career.entity';
 import { BlindType } from './blind-type.entity';
 import { ReviewLike } from './review-like.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'Review_Posts' })
 export class Review {
@@ -77,7 +78,7 @@ export class Review {
   likes: number;
 
   @Column()
-  blind: boolean;
+  blind: number;
 
   @Column()
   is_del: boolean;
@@ -91,4 +92,8 @@ export class Review {
 
   @OneToMany(() => ReviewLike, reviewLike => reviewLike.review)
   reviewLikes: ReviewLike[];
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
+  user: User;
 }

@@ -3,6 +3,7 @@ import { IsDateString, IsNumber, IsString, Length, MinLength } from 'class-valid
 import { Corp } from './corp.entity';
 import { BlindType } from './blind-type.entity';
 import { ReviewTrainingLike } from './review-training-like.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'review_posts_training' })
 export class ReviewTraning {
@@ -95,4 +96,8 @@ export class ReviewTraning {
 
   @OneToMany(() => ReviewTrainingLike, reviewTrainingLike => reviewTrainingLike.review)
   reviewTrainingLikes: ReviewTrainingLike[];
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
+  user: User;
 }
