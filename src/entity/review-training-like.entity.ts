@@ -1,9 +1,9 @@
 import { IsDateString, IsNumber, IsString } from 'class-validator';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Review } from './review.entity';
+import { ReviewTraning } from './review-training.entity';
 
-@Entity({ name: 'review_like' })
-export class ReviewLike {
+@Entity({ name: 'review_training_like' })
+export class ReviewTrainingLike {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -19,7 +19,7 @@ export class ReviewLike {
   @IsDateString()
   created_at: Date;
 
-  @ManyToOne(() => Review, review => review.reviewLikes)
+  @ManyToOne(() => ReviewTraning, review => review.reviewTrainingLikes)
   @JoinColumn({ name: 'review_id' })
-  review: Review;
+  review: ReviewTraning;
 }

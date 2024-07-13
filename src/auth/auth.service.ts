@@ -21,8 +21,8 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const { id, password } = loginDto;
-    const user = await this.userRepository.findOne({ where: { user_id: id } });
+    const { user_id, password } = loginDto;
+    const user = await this.userRepository.findOne({ where: { user_id: user_id } });
 
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     const payload: JwtPayloadDto = {
-      user_id: id,
+      user_id: user_id,
       nickname: user.nickname,
     };
 
@@ -46,7 +46,8 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const result = {
-      id: user.user_id,
+      id: user.id,
+      user_id: user.user_id,
       nickname: user.nickname,
       authority: user.authority,
       accessToken: accessToken,
@@ -57,12 +58,12 @@ export class AuthService {
   }
 
   async googleLogin(googleLoginDto: GoogleLoginDto) {
-    const { id, nickname } = googleLoginDto;
-    let user = await this.userRepository.findOne({ where: { user_id: id } });
+    const { user_id, nickname } = googleLoginDto;
+    let user = await this.userRepository.findOne({ where: { user_id: user_id } });
 
     if (!user) {
       user = this.userRepository.create({
-        user_id: id,
+        user_id: user_id,
         password: null,
         phonenumber: null,
         nickname: nickname,
@@ -78,7 +79,7 @@ export class AuthService {
       user.google = true;
     }
     const payload: JwtPayloadDto = {
-      user_id: id,
+      user_id: user_id,
       nickname: nickname,
     };
 
@@ -99,12 +100,12 @@ export class AuthService {
   }
 
   async kakaoLogin(kakaoLoginDto: KakaoLoginDto) {
-    const { id, nickname, phonenumber } = kakaoLoginDto;
-    let user = await this.userRepository.findOne({ where: { user_id: id } });
+    const { user_id, nickname, phonenumber } = kakaoLoginDto;
+    let user = await this.userRepository.findOne({ where: { user_id: user_id } });
 
     if (!user) {
       user = this.userRepository.create({
-        user_id: id,
+        user_id: user_id,
         password: null,
         phonenumber: phonenumber,
         nickname: nickname,
@@ -120,7 +121,7 @@ export class AuthService {
       user.kakao = true;
     }
     const payload: JwtPayloadDto = {
-      user_id: id,
+      user_id: user_id,
       nickname: nickname,
     };
 

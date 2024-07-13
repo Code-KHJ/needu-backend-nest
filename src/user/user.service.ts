@@ -12,6 +12,7 @@ import { UserDeleteeDto } from './dto/user-delete.dto';
 import axios from 'axios';
 import { CareerCreateDto } from './dto/career-create.dto';
 import { UserCareer } from 'src/entity/user-career.entity';
+import { CareerUpdateDto } from './dto/career-update.dto';
 
 @Injectable()
 export class UserService {
@@ -173,7 +174,7 @@ export class UserService {
     }
 
     const result = users.map(user => ({
-      id: user.user_id,
+      user_id: user.user_id,
       nickname: user.nickname,
       created_date: user.created_date,
     }));
@@ -209,10 +210,7 @@ export class UserService {
     return this.careerRepository.create(createCareerDto);
   }
 
-  async deleteCareer(review_no: number) {
-    const career = await this.careerRepository.findOneBy({ review_no: review_no });
-    career.is_del = true;
-
-    return career;
+  async getCareer(review_no: number) {
+    return this.careerRepository.findOne({ where: { review_no: review_no } });
   }
 }

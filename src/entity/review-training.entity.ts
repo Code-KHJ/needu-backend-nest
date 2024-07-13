@@ -1,14 +1,15 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 import { Corp } from './corp.entity';
 import { BlindType } from './blind-type.entity';
+import { ReviewTrainingLike } from './review-training-like.entity';
 
 @Entity({ name: 'review_posts_training' })
 export class ReviewTraning {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Corp, corp => corp.reviews_training)
+  @ManyToOne(() => Corp, corp => corp.reviews_training, { eager: true })
   @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
   corp: Corp;
 
@@ -91,4 +92,7 @@ export class ReviewTraning {
   @ManyToOne(() => BlindType)
   @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
   blindType: BlindType;
+
+  @OneToMany(() => ReviewTrainingLike, reviewTrainingLike => reviewTrainingLike.review)
+  reviewTrainingLikes: ReviewTrainingLike[];
 }

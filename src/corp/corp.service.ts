@@ -144,7 +144,7 @@ export class CorpService {
       .leftJoin('c.reviews', 'rp')
       .addSelect([
         'COUNT(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.id ELSE NULL END) AS cnt',
-        'ROUND(AVG(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.total_score ELSE 0 END),1) AS avg',
+        'ROUND(AVG(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.total_score ELSE NULL END),1) AS avg',
       ])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')
@@ -162,13 +162,12 @@ export class CorpService {
       .leftJoin('c.reviews_training', 'rt')
       .addSelect([
         'COUNT(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.id ELSE NULL END) AS cnt',
-        'ROUND(AVG(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.total_score ELSE 0 END),1) AS avg',
+        'ROUND(AVG(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.total_score ELSE NULL END),1) AS avg',
       ])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')
       .getRawOne();
 
-    console.log(corp);
     return corp;
   }
 

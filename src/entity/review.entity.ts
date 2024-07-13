@@ -1,8 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsArray, IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 import { Corp } from './corp.entity';
 import { UserCareer } from './user-career.entity';
 import { BlindType } from './blind-type.entity';
+import { ReviewLike } from './review-like.entity';
 
 @Entity({ name: 'Review_Posts' })
 export class Review {
@@ -87,4 +88,7 @@ export class Review {
   @ManyToOne(() => BlindType)
   @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
   blindType: BlindType;
+
+  @OneToMany(() => ReviewLike, reviewLike => reviewLike.review)
+  reviewLikes: ReviewLike[];
 }

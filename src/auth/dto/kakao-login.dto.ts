@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString, Matches } from 'class-validator';
 export class KakaoLoginDto {
   @IsString()
   @IsNotEmpty()
-  id: string;
+  user_id: string;
 
   @IsString()
   nickname: string;

@@ -12,6 +12,9 @@ import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewTraning } from 'src/entity/review-training.entity';
 import { LikeDto } from './dto/review-like.dto';
 import { DeleteReviewDto } from './dto/review-delete.dto';
+import { ReviewLike } from 'src/entity/review-like.entity';
+import { ReviewTrainingLike } from 'src/entity/review-training-like.entity';
+import { UserCareer } from 'src/entity/user-career.entity';
 
 @Injectable()
 export class ReviewService {
@@ -20,10 +23,10 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     @InjectRepository(ReviewTraning)
     private readonly reviewTrainingRepository: Repository<ReviewTraning>,
-    @InjectRepository(Corp)
-    private readonly corpRepository: Repository<Corp>,
-    @InjectRepository(Hashtag)
-    private readonly hashtagRepository: Repository<Hashtag>,
+    @InjectRepository(ReviewLike)
+    private readonly reviewLikeRepository: Repository<ReviewLike>,
+    @InjectRepository(ReviewTrainingLike)
+    private readonly reviewTrainingLikeRepository: Repository<ReviewTrainingLike>,
     @InjectEntityManager() private readonly entityManager: EntityManager,
     private readonly corpService: CorpService,
     private readonly userService: UserService,
@@ -65,10 +68,10 @@ export class ReviewService {
         review_no: savedReview.id,
       };
       const career = await this.userService.createCareer(careerDto);
-      await queryRunner.manager.save(career);
+      const savedCareer = await queryRunner.manager.save(career);
 
       await queryRunner.commitTransaction();
-      return { review: savedReview, career };
+      return { review: savedReview, career: savedCareer };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -85,13 +88,92 @@ export class ReviewService {
         { corp: { corp_name: corpname }, is_del: false },
         { corp: { corp_name: corpname }, is_del: IsNull() },
       ],
-      relations: ['userCareer'],
+      relations: ['userCareer', 'reviewLikes'],
       order: {
         id: 'DESC',
       },
     });
-    console.log(reviews);
+
+    reviews.forEach(review => {
+      review.likes = (review.likes || 0) + review.reviewLikes.length;
+    });
     return reviews;
+  }
+
+  // 리뷰 no 으로 전현직 리뷰 조회
+  async findWorkingReviewById(user_id: string, no: string) {
+    const review = await this.reviewRepository.findOne({
+      where: { id: parseInt(no) },
+      relations: ['userCareer'],
+    });
+    if (user_id !== review.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    return review;
+  }
+
+  // 전현직 리뷰 수정
+  async updateWorkingReview(no: string, userId: string, workingCreateDto: WorkingCreateDto) {
+    if (userId != workingCreateDto.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+    const review = await this.reviewRepository.findOne({
+      where: { id: parseInt(no) },
+    });
+    const userCareer = await this.userService.getCareer(parseInt(no));
+    const today = new Date();
+
+    if (!review) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const total_score =
+      Math.round(
+        ((workingCreateDto.growth_score +
+          workingCreateDto.leadership_score +
+          workingCreateDto.reward_score +
+          workingCreateDto.worth_score +
+          workingCreateDto.culture_score +
+          workingCreateDto.worklife_score) /
+          6) *
+          10,
+      ) / 10;
+
+    const reviewFields = Object.keys(review);
+    const reviewdDto: Partial<WorkingCreateDto> = {};
+    for (const key of Object.keys(workingCreateDto)) {
+      if (reviewFields.includes(key)) {
+        reviewdDto[key] = workingCreateDto[key];
+      }
+    }
+
+    const careerDto = {
+      first_date: workingCreateDto.start_date,
+      last_date: workingCreateDto.end_date,
+      type: workingCreateDto.career_type,
+    };
+
+    const queryRunner = await this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.manager.merge(Review, review, { ...reviewdDto, total_score: total_score, modified_date: today });
+      const updatedReview = await queryRunner.manager.save(review);
+
+      await queryRunner.manager.merge(UserCareer, userCareer, { ...careerDto });
+      const updatedCareer = await queryRunner.manager.save(userCareer);
+
+      await queryRunner.commitTransaction();
+      return { review: updatedReview, career: updatedCareer };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+      this.corpService.updateHashtag(review.corp.corp_name);
+    }
   }
 
   // 기관명으로 전현직 리뷰 평점 조회
@@ -108,7 +190,6 @@ export class ReviewService {
       .where('r.corp_name = :corpname', { corpname })
       .andWhere('r.is_del IS NULL OR r.is_del <> 1')
       .getRawOne();
-    console.log(result);
 
     return result;
   }
@@ -124,10 +205,11 @@ export class ReviewService {
     if (!review) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    const career = await this.userService.deleteCareer(deleteReviewDto.review_no);
+    const career = await this.userService.getCareer(deleteReviewDto.review_no);
 
     review.modified_date = new Date();
     review.is_del = true;
+    career.is_del = true;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -180,11 +262,28 @@ export class ReviewService {
         { corp: { corp_name: corpname }, is_del: false },
         { corp: { corp_name: corpname }, is_del: IsNull() },
       ],
+      relations: ['reviewTrainingLikes'],
       order: {
         id: 'DESC',
       },
     });
+
+    reviews.forEach(review => {
+      review.likes = (review.likes || 0) + review.reviewTrainingLikes.length;
+    });
     return reviews;
+  }
+
+  // 리뷰 no 으로 실습 리뷰 조회
+  async findTrainingReviewById(user_id: string, no: string) {
+    const review = await this.reviewTrainingRepository.findOne({
+      where: { id: parseInt(no) },
+    });
+    if (user_id !== review.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    return review;
   }
 
   // 기관명으로 실습 리뷰 평점 조회
@@ -201,6 +300,51 @@ export class ReviewService {
       .getRawOne();
 
     return result;
+  }
+
+  // 실습 리뷰 수정
+  async updateTrainingReview(no: string, userId: string, trainingCreateDto: TrainingCreateDto) {
+    if (userId != trainingCreateDto.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+    const review = await this.reviewTrainingRepository.findOne({
+      where: { id: parseInt(no) },
+    });
+    const today = new Date();
+
+    if (!review) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const total_score =
+      Math.round(
+        ((trainingCreateDto.growth_score + trainingCreateDto.worth_score + trainingCreateDto.recommend_score + trainingCreateDto.supervisor_score) / 4) * 10,
+      ) / 10;
+
+    const reviewFields = Object.keys(review);
+    const reviewdDto: Partial<WorkingCreateDto> = {};
+    for (const key of Object.keys(trainingCreateDto)) {
+      if (reviewFields.includes(key)) {
+        reviewdDto[key] = trainingCreateDto[key];
+      }
+    }
+
+    const queryRunner = await this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.manager.merge(ReviewTraning, review, { ...reviewdDto, total_score: total_score, modified_date: today });
+      const updatedReview = await queryRunner.manager.save(review);
+
+      await queryRunner.commitTransaction();
+      return { review: updatedReview };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // 실습 리뷰 삭제
@@ -234,44 +378,45 @@ export class ReviewService {
   }
 
   // 리뷰 좋아요
-  async updateLike(likeDto: LikeDto) {
-    if (likeDto.type == 'working') {
-      const review = await this.reviewRepository.findOneBy({
-        id: likeDto.review_no,
-      });
-      if (!review) {
-        throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+  async updateLike(userId: number, likeDto: LikeDto) {
+    if (likeDto.type === 'working') {
+      if (likeDto.action === 'plus') {
+        const result = await this.reviewLikeRepository.create({
+          review_id: likeDto.review_no,
+          user_id: userId,
+        });
+        await this.reviewLikeRepository.save(result);
+        return { msg: '좋아요' };
       }
-
-      if (likeDto.action === 'plus' || likeDto.action === 'minus') {
-        review.likes += likeDto.action == 'plus' ? 1 : -1;
-      }
-
-      try {
-        await this.reviewRepository.save(review);
-        return review.likes;
-      } catch (error) {
-        throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+      if (likeDto.action === 'minus') {
+        const result = await this.reviewLikeRepository.findOne({
+          where: {
+            user_id: userId,
+            review_id: likeDto.review_no,
+          },
+        });
+        await this.reviewLikeRepository.remove(result);
+        return { msg: '좋아요 취소' };
       }
     }
-    if (likeDto.type == 'training') {
-      const review = await this.reviewTrainingRepository.findOneBy({
-        id: likeDto.review_no,
-      });
-
-      if (!review) {
-        throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    if (likeDto.type === 'training') {
+      if (likeDto.action === 'plus') {
+        const result = await this.reviewTrainingLikeRepository.create({
+          review_id: likeDto.review_no,
+          user_id: userId,
+        });
+        await this.reviewTrainingLikeRepository.save(result);
+        return { msg: '좋아요' };
       }
-
-      if (likeDto.action === 'plus' || likeDto.action === 'minus') {
-        review.likes += likeDto.action == 'plus' ? 1 : -1;
-      }
-
-      try {
-        await this.reviewTrainingRepository.save(review);
-        return review.likes;
-      } catch (error) {
-        throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+      if (likeDto.action === 'minus') {
+        const result = await this.reviewTrainingLikeRepository.findOne({
+          where: {
+            user_id: userId,
+            review_id: likeDto.review_no,
+          },
+        });
+        await this.reviewTrainingLikeRepository.remove(result);
+        return { msg: '좋아요 취소' };
       }
     }
   }

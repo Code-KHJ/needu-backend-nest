@@ -23,7 +23,7 @@ export class ReviewController {
     status: 201,
     description: '전현직자 리뷰 작성',
   })
-  async createWorkingReview(@GetCurrentUser('id') userId: string, @Param('name') name: string, @Body() workingCreateDto: WorkingCreateDto) {
+  async createWorkingReview(@GetCurrentUser('user_id') userId: string, @Param('name') name: string, @Body() workingCreateDto: WorkingCreateDto) {
     const corp = await this.corpService.findOne(name);
     workingCreateDto.corp = corp;
     workingCreateDto.user_id = userId;
@@ -35,35 +35,50 @@ export class ReviewController {
     return response;
   }
 
-  @Patch('/working/:no')
-  @ApiOperation({ summary: '전현직자 리뷰 수정' })
-  @ApiResponse({
-    status: 201,
-    description: '전현직자 리뷰 수정',
-  })
-  async updateWorkingReview() {}
-
-  @Delete('/working')
-  @ApiOperation({ summary: '전현직자 리뷰 삭제' })
-  @ApiResponse({
-    status: 201,
-    description: '전현직자 리뷰 삭제',
-  })
-  async deleteWorkingReview(@GetCurrentUser('id') userId: string, @Body() deleteReviewDto: DeleteReviewDto) {
-    const response = await this.reviewService.deleteWorkingReview(userId, deleteReviewDto);
-
-    return response;
-  }
-
   @Public()
   @Get('/working/:name')
-  @ApiOperation({ summary: '전현직자 리뷰 조회' })
+  @ApiOperation({ summary: '전현직자 리뷰 조회 by 기관명' })
   @ApiResponse({
     status: 200,
     description: '전현직자 리뷰 조회',
   })
   async getWorkingReviews(@Param('name') name: string) {
     const response = await this.reviewService.findWorkingReviews(name);
+
+    return response;
+  }
+
+  @Get('/working/id/:no')
+  @ApiOperation({ summary: '전현직자 리뷰 조회 by 리뷰 no' })
+  @ApiResponse({
+    status: 200,
+    description: '전현직자 리뷰 조회',
+  })
+  async getWorkingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string) {
+    const response = await this.reviewService.findWorkingReviewById(userId, no);
+
+    return response;
+  }
+
+  @Patch('/working/id/:no')
+  @ApiOperation({ summary: '전현직자 리뷰 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '전현직자 리뷰 수정',
+  })
+  async updateWorkingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string, @Body() workingCreateDto: WorkingCreateDto) {
+    const response = await this.reviewService.updateWorkingReview(no, userId, workingCreateDto);
+    return response;
+  }
+
+  @Delete('/working')
+  @ApiOperation({ summary: '전현직자 리뷰 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '전현직자 리뷰 삭제',
+  })
+  async deleteWorkingReview(@GetCurrentUser('user_id') userId: string, @Body() deleteReviewDto: DeleteReviewDto) {
+    const response = await this.reviewService.deleteWorkingReview(userId, deleteReviewDto);
 
     return response;
   }
@@ -88,7 +103,7 @@ export class ReviewController {
     status: 201,
     description: '실습 리뷰 작성',
   })
-  async createTrainingReview(@GetCurrentUser('id') userId: string, @Param('name') name: string, @Body() trainingCreateDto: TrainingCreateDto) {
+  async createTrainingReview(@GetCurrentUser('user_id') userId: string, @Param('name') name: string, @Body() trainingCreateDto: TrainingCreateDto) {
     const corp = await this.corpService.findOne(name);
     trainingCreateDto.corp = corp;
     trainingCreateDto.user_id = userId;
@@ -99,34 +114,14 @@ export class ReviewController {
     return response;
   }
 
-  @Patch('/training/:no')
-  @ApiOperation({ summary: '실습 리뷰 수정' })
-  @ApiResponse({
-    status: 201,
-    description: '실습 리뷰 수정',
-  })
-  async updateTrainingReview() {}
-
-  @Delete('/training')
-  @ApiOperation({ summary: '실습 리뷰 삭제' })
-  @ApiResponse({
-    status: 201,
-    description: '실습 리뷰 삭제',
-  })
-  async deleteTrainingReview(@GetCurrentUser('id') userId: string, @Body() deleteReviewDto: DeleteReviewDto) {
-    const response = await this.reviewService.deleteTrainingReview(userId, deleteReviewDto);
-
-    return response;
-  }
-
   @Public()
   @Get('/training/:name')
-  @ApiOperation({ summary: '실습 리뷰 조회' })
+  @ApiOperation({ summary: '실습 리뷰 조회 by 기관명' })
   @ApiResponse({
     status: 200,
     description: '실습 리뷰 조회',
   })
-  async getTrainingReview(@Param('name') name: string) {
+  async getTrainingReviews(@Param('name') name: string) {
     const response = await this.reviewService.findTrainingReviews(name);
 
     return response;
@@ -145,6 +140,41 @@ export class ReviewController {
     return response;
   }
 
+  @Get('/training/id/:no')
+  @ApiOperation({ summary: '실습 리뷰 조회 by 리뷰 no' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 조회',
+  })
+  async getTrainingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string) {
+    const response = await this.reviewService.findTrainingReviewById(userId, no);
+
+    return response;
+  }
+
+  @Patch('/training/id/:no')
+  @ApiOperation({ summary: '실습 리뷰 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 수정',
+  })
+  async updateTrainingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string, @Body() trainingCreateDto: TrainingCreateDto) {
+    const response = await this.reviewService.updateTrainingReview(no, userId, trainingCreateDto);
+    return response;
+  }
+
+  @Delete('/training')
+  @ApiOperation({ summary: '실습 리뷰 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 삭제',
+  })
+  async deleteTrainingReview(@GetCurrentUser('user_id') userId: string, @Body() deleteReviewDto: DeleteReviewDto) {
+    const response = await this.reviewService.deleteTrainingReview(userId, deleteReviewDto);
+
+    return response;
+  }
+
   // 리뷰 좋아요
   @Patch('/like')
   @ApiOperation({ summary: '리뷰 좋아요' })
@@ -152,8 +182,8 @@ export class ReviewController {
     status: 201,
     description: '리뷰 좋아요',
   })
-  async updateLike(@Body() likeDto: LikeDto) {
-    const response = await this.reviewService.updateLike(likeDto);
+  async updateLike(@GetCurrentUser('id') userId: number, @Body() likeDto: LikeDto) {
+    const response = await this.reviewService.updateLike(userId, likeDto);
 
     return response;
   }

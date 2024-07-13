@@ -1,9 +1,10 @@
 import { PickType } from '@nestjs/swagger';
 import { User } from '../../entity/user.entity';
 
-export class JwtResponseDto extends PickType(User, ['user_id', 'nickname', 'phonenumber', 'authority', 'login_date']) {
+export class JwtResponseDto extends PickType(User, ['id', 'user_id', 'nickname', 'phonenumber', 'authority', 'login_date']) {
   constructor(user: User) {
     super();
+    this.id = user.id;
     this.user_id = user.user_id;
     this.nickname = user.nickname;
     this.phonenumber = user.phonenumber;
