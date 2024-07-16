@@ -8,7 +8,9 @@ import { CorpCreateDto } from './dto/corp-create.dto';
 import { CorpUpdateDto } from './dto/corp-update.dto';
 import { CorpsGetWorkingDto } from './dto/corps-get-working.dto';
 import { Review } from 'src/entity/review.entity';
-import { CorpsGetWorkingResponseDto } from './dto/corps-get-working-response.dto copy';
+import { CorpsGetWorkingResponseDto } from './dto/corps-get-working-response.dto';
+import { CorpsGetTrainingDto } from './dto/corps-get-training.dto';
+import { CorpsGetTrainingResponseDto } from './dto/corps-get-traininging-response.dto';
 
 @Injectable()
 export class CorpService {
@@ -82,50 +84,74 @@ export class CorpService {
     return corp;
   }
 
+  //기관 조회 with 전현직 리뷰 평점, 필터
   async findAllWorking(corpsGetWorkingDto: CorpsGetWorkingDto) {
-    let { name, city, gugun, score, hashtag, order, page } = corpsGetWorkingDto;
+    let { corp_name, region, score, hashtags, order, page } = corpsGetWorkingDto;
     const take = 10;
     if (page === undefined) {
       page = 1;
     }
     const skip = (page - 1) * take;
 
-    if (name === undefined) {
-      name = '';
+    if (corp_name === undefined) {
+      corp_name = '';
     }
-    if (city === undefined) {
-      city = '';
-    }
-    if (gugun === undefined) {
-      gugun = '';
-    }
-    if (score === undefined) {
-      score = 0;
+    if (region === undefined) {
+      region = '';
     }
     if (order === undefined) {
-      order = 'cnt';
+      order = 'avg';
     }
 
     const queryBuilder = await this.corpRepository
       .createQueryBuilder('c')
-      .select(['c.id AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
+      .select(['c.id AS id', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews', 'rp')
-      .addSelect(['COUNT(rp.id) AS cnt', 'ROUND(AVG(rp.total_score),1) as avg'])
-      .where('c.corp_name LIKE :name', { name: `%${name}%` })
-      .andWhere('c.city LIKE :city', { city: `%${city}%` })
-      .andWhere('c.gugun LIKE :gugun', { gugun: `%${gugun}%` });
+      .addSelect([
+        'COUNT(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.total_score ELSE NULL END),1) as avg',
+      ])
+      .where('c.corp_name LIKE :name', { name: `%${corp_name}%` })
+      .andWhere('c.city LIKE :city', { city: `%${region}%` });
 
-    if (hashtag && hashtag.length > 0) {
-      queryBuilder.andWhere('JSON_CONTAINS(c.hashtag, :hashtag)', { hashtag: hashtag });
+    let havingClause;
+    let params = {};
+    if (score !== undefined && score !== '') {
+      const scoreList = score.split(',').map(Number);
+      const havingClauses = scoreList.map(s => {
+        return `avg >= :minScore${s} AND avg < :maxScore${s}`;
+      });
+
+      // 실제로 사용할 having 절 문자열 생성
+      havingClause = havingClauses.join(' OR ');
+
+      // 매개변수 객체 생성
+      scoreList.forEach(s => {
+        params[`minScore${s}`] = s;
+        params[`maxScore${s}`] = s + 1;
+      });
+    }
+    if (hashtags !== undefined && hashtags !== '') {
+      const hashtagArray = hashtags.split(',').map(Number);
+      hashtagArray.forEach((hashtag, index) => {
+        queryBuilder.andWhere(`JSON_CONTAINS(c.hashtag, :hashtag${index})`, { [`hashtag${index}`]: `[${hashtag}]` });
+      });
+    }
+    if (havingClause) {
+      queryBuilder.having(havingClause, params);
     }
 
+    const totalCount = await queryBuilder.groupBy('c.corp_name').getRawMany();
     const corps = await queryBuilder
       .groupBy('c.corp_name')
-      .having('avg >= :score', { score: score })
       .orderBy(order, 'DESC')
+      .addOrderBy(order === 'avg' ? 'cnt' : 'avg', 'DESC')
+      .addOrderBy('c.corp_name', 'ASC')
       .offset(skip)
       .limit(take)
       .getRawMany();
+
+    const totalPages = Math.ceil(totalCount.length / take); // 총 페이지 수 계산
 
     const result: CorpsGetWorkingResponseDto[] = [];
 
@@ -133,10 +159,10 @@ export class CorpService {
       const postItem = new CorpsGetWorkingResponseDto(corp.id, corp.corp_name, corp.city, corp.gugun, corp.hashtag, corp.cnt, corp.avg);
       result.push(postItem);
     }
-
-    return result;
+    return { result, totalPages };
   }
 
+  //기관 단일 조회 with 전현직 리뷰 평점
   async findOneWorking(name: string) {
     const corp = await this.corpRepository
       .createQueryBuilder('c')
@@ -153,8 +179,160 @@ export class CorpService {
     return corp;
   }
 
-  async findAllTraining() {}
+  //기관 조회 with 실습 리뷰 평점, 필터
+  async findAllTraining(corpsGetTrainingDto: CorpsGetTrainingDto) {
+    let { corp_name, region, score, number_of_participants, cost, duration, order, page } = corpsGetTrainingDto;
+    const take = 10;
+    if (page === undefined) {
+      page = 1;
+    }
+    const skip = (page - 1) * take;
 
+    if (corp_name === undefined) {
+      corp_name = '';
+    }
+    if (region === undefined) {
+      region = '';
+    }
+    if (order === undefined) {
+      order = 'avg';
+    }
+
+    const queryBuilder = await this.corpRepository
+      .createQueryBuilder('c')
+      .select(['c.id AS id', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
+      .leftJoin('c.reviews_training', 'r')
+      .addSelect([
+        'COUNT(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.total_score ELSE NULL END),1) as avg',
+        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.number_of_participants ELSE NULL END),1) as number_of_participants',
+        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.cost/10000 ELSE NULL END),1) as cost',
+        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.duration ELSE NULL END),1) as duration',
+      ])
+      .where('c.corp_name LIKE :name', { name: `%${corp_name}%` })
+      .andWhere('c.city LIKE :city', { city: `%${region}%` });
+
+    let havingClauses = [];
+    if (score !== undefined && score !== '') {
+      const scoreList = score.split(',').map(Number);
+      const scoreConditions = [];
+      // 매개변수 객체 생성
+      scoreList.forEach(s => {
+        scoreConditions.push(`(avg >= ${s} AND avg < ${s + 1})`);
+      });
+      const scoreClause = `(${scoreConditions.join(' OR ')})`;
+      havingClauses.push(scoreClause);
+    }
+    if (number_of_participants !== '') {
+      const list = number_of_participants.split(',').map(Number);
+      const peopleConditions = [];
+      list.map(item => {
+        switch (item) {
+          case 0:
+            peopleConditions.push('(number_of_participants >= 1 AND number_of_participants < 4)');
+            break;
+          case 1:
+            peopleConditions.push('(number_of_participants >= 4 AND number_of_participants < 7)');
+            break;
+          case 2:
+            peopleConditions.push('(number_of_participants >= 7 AND number_of_participants < 10)');
+            break;
+          case 3:
+            peopleConditions.push('(number_of_participants >= 10 AND number_of_participants < 13)');
+            break;
+          case 4:
+            peopleConditions.push('(number_of_participants >= 13)');
+            break;
+          default:
+            break;
+        }
+      });
+      const peopleClause = `(${peopleConditions.join(' OR ')})`;
+      havingClauses.push(peopleClause);
+    }
+    if (cost !== '') {
+      const list = cost.split(',').map(Number);
+      const costConditions = [];
+      list.map(item => {
+        switch (item) {
+          case 0:
+            costConditions.push('(cost < 10)');
+            break;
+          case 1:
+            costConditions.push('(cost >= 10 AND cost < 15)');
+            break;
+          case 2:
+            costConditions.push('(cost >= 15 AND cost < 20)');
+            break;
+          case 3:
+            costConditions.push('(cost >= 20)');
+            break;
+          default:
+            break;
+        }
+      });
+      const costClause = `(${costConditions.join(' OR ')})`;
+      havingClauses.push(costClause);
+    }
+    ['160시간 미만', '160-200시간', '200시간 이상'];
+    if (duration !== '') {
+      const list = duration.split(',').map(Number);
+      const durationConditions = [];
+      list.map(item => {
+        switch (item) {
+          case 0:
+            durationConditions.push('(duration < 160)');
+            break;
+          case 1:
+            durationConditions.push('(duration >= 160 AND duration < 200)');
+            break;
+          case 2:
+            durationConditions.push('(duration >= 200)');
+            break;
+          default:
+            break;
+        }
+      });
+      const durationClause = `(${durationConditions.join(' OR ')})`;
+      havingClauses.push(durationClause);
+    }
+
+    if (havingClauses.length > 0) {
+      const finalHavingClause = `(${havingClauses.join(') AND (')})`;
+      queryBuilder.having(finalHavingClause);
+    }
+
+    const totalCount = await queryBuilder.groupBy('c.corp_name').getRawMany();
+    const corps = await queryBuilder
+      .groupBy('c.corp_name')
+      .orderBy(order, 'DESC')
+      .addOrderBy(order === 'avg' ? 'cnt' : 'avg', 'DESC')
+      .addOrderBy('c.corp_name', 'ASC')
+      .offset(skip)
+      .limit(take)
+      .getRawMany();
+
+    const totalPages = Math.ceil(totalCount.length / take); // 총 페이지 수 계산
+    const result: CorpsGetTrainingResponseDto[] = [];
+    for (const corp of corps) {
+      const postItem = new CorpsGetTrainingResponseDto(
+        corp.id,
+        corp.corp_name,
+        corp.city,
+        corp.gugun,
+        corp.hashtag,
+        corp.number_of_participants,
+        corp.cost,
+        corp.duration,
+        corp.cnt,
+        corp.avg,
+      );
+      result.push(postItem);
+    }
+    return { result, totalPages };
+  }
+
+  //기관 단일 조회 with 실습 리뷰 평점
   async findOneTraining(name: string) {
     const corp = await this.corpRepository
       .createQueryBuilder('c')
@@ -223,6 +401,7 @@ export class CorpService {
     }
   }
 
+  //전현직 리뷰 작성, 수정 시 기관 해시태그 업데이트
   async updateHashtag(name: string) {
     const corp = await this.findOne(name);
     const reviews = await this.reviewRepository

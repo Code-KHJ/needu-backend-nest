@@ -1,8 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
-import { type } from 'os';
 
-export class CorpsGetWorkingDto {
+export class CorpsGetTrainingDto {
   @IsOptional()
   @IsString()
   corp_name: string;
@@ -17,7 +16,15 @@ export class CorpsGetWorkingDto {
 
   @IsOptional()
   @IsString()
-  hashtags: string;
+  number_of_participants: string;
+
+  @IsOptional()
+  @IsString()
+  cost: string;
+
+  @IsOptional()
+  @IsString()
+  duration: string;
 
   @IsOptional()
   @IsString()

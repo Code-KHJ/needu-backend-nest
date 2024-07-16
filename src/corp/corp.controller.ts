@@ -9,6 +9,7 @@ import { RoleType } from '../common/role-type';
 import { Roles } from '../common/decorators/role.decorator';
 import { Public } from '../common/decorators';
 import { CorpsGetWorkingDto } from './dto/corps-get-working.dto';
+import { CorpsGetTrainingDto } from './dto/corps-get-training.dto';
 
 @ApiTags('Corp')
 @Controller('/api/corp')
@@ -62,6 +63,7 @@ export class CorpController {
     return this.corpService.findOneWorking(name);
   }
 
+  //완료
   @Public()
   @Get('/training')
   @ApiOperation({ summary: '기관 전체 조회 with 실습리뷰' })
@@ -69,10 +71,11 @@ export class CorpController {
     status: 200,
     description: '전체 조회 성공',
   })
-  getAllWithTraining(@Query() corpsGetDto: CorpsGetDto) {
-    return this.corpService.findAllTraining();
+  getAllWithTraining(@Query() corpsGetTrainingDto: CorpsGetTrainingDto) {
+    return this.corpService.findAllTraining(corpsGetTrainingDto);
   }
 
+  //완료
   @Public()
   @Get('/training/:name')
   @ApiOperation({ summary: '기관 조회 with 실습리뷰' })
