@@ -35,7 +35,6 @@ export class CorpController {
     description: '조회 성공',
   })
   getCorp(@Param('name') name: string) {
-    console.log(name);
     return this.corpService.findOne(name);
   }
 

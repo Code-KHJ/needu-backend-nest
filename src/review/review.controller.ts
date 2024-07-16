@@ -148,7 +148,6 @@ export class ReviewController {
   })
   async getTrainingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string) {
     const response = await this.reviewService.findTrainingReviewById(userId, no);
-
     return response;
   }
 
@@ -159,8 +158,12 @@ export class ReviewController {
     description: '실습 리뷰 수정',
   })
   async updateTrainingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string, @Body() trainingCreateDto: TrainingCreateDto) {
-    const response = await this.reviewService.updateTrainingReview(no, userId, trainingCreateDto);
-    return response;
+    try {
+      const response = await this.reviewService.updateTrainingReview(no, userId, trainingCreateDto);
+      return response;
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   @Delete('/training')

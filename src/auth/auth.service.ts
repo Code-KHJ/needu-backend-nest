@@ -155,7 +155,6 @@ export class AuthService {
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-
     const validateRt = await this.validateRefrshToken(userId, rt);
 
     if (!validateRt) {
@@ -178,6 +177,7 @@ export class AuthService {
 
   async validateRefrshToken(id: string, rt: string): Promise<boolean> {
     const data = await this.redis.get(id);
+
     if (rt !== data) {
       return false;
     }
