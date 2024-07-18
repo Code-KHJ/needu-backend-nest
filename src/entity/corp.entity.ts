@@ -3,12 +3,12 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Review } from './review.entity';
 import { ReviewTraning } from './review-training.entity';
 
-@Entity({ name: 'Corp' })
+@Entity({ name: 'corp' })
 export class Corp {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'Corp_name' })
+  @Column({ name: 'corp_name', unique: true })
   @IsString()
   corp_name: string;
 

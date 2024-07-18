@@ -11,7 +11,7 @@ export class UserCareer {
   @IsString()
   user_id: string;
 
-  @Column({ name: 'Corp_name' })
+  @Column({ name: 'corp_name' })
   @IsString()
   corp_name: string;
 

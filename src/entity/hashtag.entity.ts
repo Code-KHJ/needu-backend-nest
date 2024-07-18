@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'ty
 import { Review } from './review.entity';
 import { IsOptional, IsString } from 'class-validator';
 
-@Entity({ name: 'Hashtag_Posts' })
+@Entity({ name: 'hashtag_posts' })
 export class Hashtag {
   @PrimaryGeneratedColumn({ name: 'No' })
   no: number;

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 import { Corp } from './corp.entity';
 import { BlindType } from './blind-type.entity';
@@ -10,9 +10,9 @@ export class ReviewTraning {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Corp, corp => corp.reviews_training, { eager: true })
-  @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
-  corp: Corp;
+  @Column()
+  @IsString()
+  corp_name: string;
 
   @Column()
   @IsString()
@@ -72,20 +72,20 @@ export class ReviewTraning {
   @Length(30, 1000)
   cons: string;
 
-  @Column()
+  @CreateDateColumn()
   @IsDateString()
   created_date: Date;
 
-  @Column()
+  @UpdateDateColumn({ nullable: true })
   @IsDateString()
   modified_date: Date;
 
-  @Column()
+  @Column({ nullable: true })
   @IsNumber()
   likes: number;
 
   @Column()
-  blind: boolean;
+  blind: number;
 
   @Column()
   is_del: boolean;
@@ -97,7 +97,11 @@ export class ReviewTraning {
   @OneToMany(() => ReviewTrainingLike, reviewTrainingLike => reviewTrainingLike.review)
   reviewTrainingLikes: ReviewTrainingLike[];
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, user => user.review_training)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
+
+  @ManyToOne(() => Corp, corp => corp.reviews_training, { eager: true })
+  @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
+  corp: Corp;
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { IsArray, IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 import { Corp } from './corp.entity';
 import { UserCareer } from './user-career.entity';
@@ -6,14 +6,14 @@ import { BlindType } from './blind-type.entity';
 import { ReviewLike } from './review-like.entity';
 import { User } from './user.entity';
 
-@Entity({ name: 'Review_Posts' })
+@Entity({ name: 'review_posts' })
 export class Review {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Corp, corp => corp.reviews, { eager: true })
-  @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
-  corp: Corp;
+  @Column()
+  @IsString()
+  corp_name: string;
 
   @Column()
   @IsString()
@@ -65,15 +65,15 @@ export class Review {
   @Length(30, 1000)
   cons: string;
 
-  @Column()
+  @CreateDateColumn()
   @IsDateString()
   created_date: Date;
 
-  @Column()
+  @UpdateDateColumn({ nullable: true })
   @IsDateString()
   modified_date: Date;
 
-  @Column()
+  @Column({ nullable: true })
   @IsNumber()
   likes: number;
 
@@ -93,7 +93,11 @@ export class Review {
   @OneToMany(() => ReviewLike, reviewLike => reviewLike.review)
   reviewLikes: ReviewLike[];
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, user => user.reviews)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
+
+  @ManyToOne(() => Corp, corp => corp.reviews, { eager: true })
+  @JoinColumn({ name: 'corp_name', referencedColumnName: 'corp_name' })
+  corp: Corp;
 }

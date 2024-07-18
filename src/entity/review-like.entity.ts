@@ -1,5 +1,5 @@
 import { IsDateString, IsNumber, IsString } from 'class-validator';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Review } from './review.entity';
 
 @Entity({ name: 'review_like' })
@@ -15,7 +15,7 @@ export class ReviewLike {
   @IsNumber()
   user_id: number;
 
-  @Column()
+  @CreateDateColumn()
   @IsDateString()
   created_at: Date;
 

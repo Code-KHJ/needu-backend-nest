@@ -1,5 +1,5 @@
 import { IsBoolean, IsEmail, IsNumber, IsString, Length, Matches, MinLength } from 'class-validator';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Review } from './review.entity';
 import { ReviewTraning } from './review-training.entity';
 
@@ -8,7 +8,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   @IsEmail()
   @Length(1, 40)
   user_id: string;
@@ -23,7 +23,7 @@ export class User {
   @Matches(/^(010)[0-9]{7,8}$/)
   phonenumber: string;
 
-  @Column()
+  @Column({ unique: true })
   @IsString()
   @Matches(/^[A-Za-z가-힣0-9._-]{2,}$/)
   @MinLength(2)
@@ -49,26 +49,30 @@ export class User {
   @IsBoolean()
   marketing_SMS: boolean;
 
-  @Column()
+  @Column({ nullable: true })
+  @IsString()
+  info_period: string | null;
+
+  @CreateDateColumn()
   created_date: Date;
 
-  @Column()
+  @UpdateDateColumn({ nullable: true })
   modified_date: Date;
 
-  @Column()
+  @Column({ nullable: true })
   login_date: Date;
 
-  @Column()
+  @Column({ nullable: true })
   @IsString()
   google: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   @IsString()
   kakao: boolean;
 
   @OneToMany(() => Review, review => review.user)
   reviews: Review[];
 
-  @OneToMany(() => ReviewTraning, review => review.user)
-  reviewsTraining: ReviewTraning[];
+  @OneToMany(() => ReviewTraning, review_training => review_training.user)
+  review_training: ReviewTraning[];
 }
