@@ -9,9 +9,13 @@ import { CommunityComment } from 'src/entity/community-comment.entity';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 import { CommunityType } from 'src/entity/community-type.entity';
 import { CommunityTopic } from 'src/entity/community-topic.entity';
+import { MulterModule } from '@nestjs/platform-express';
+import { multerOptionsFactory } from 'src/multer.options.factory';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    MulterModule.registerAsync({imports:[ConfigModule], useFactory: multerOptionsFactory }),
     TypeOrmModule.forFeature([
       CommunityPost,
       CommunityPostLike,
