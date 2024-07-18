@@ -96,7 +96,7 @@ export class AuthController {
     const { id, nickname, accessToken, refreshToken } = await this.authService.kakaoLogin(req.user);
     this.setCookies(accessToken, refreshToken, res);
 
-    const redirectUrl = 'http://localhost:5173';
+    const redirectUrl = process.env.SSO_REDIRECT_URL;
     return res.redirect(HttpStatus.FOUND, redirectUrl);
   }
 
@@ -120,7 +120,7 @@ export class AuthController {
     const { id, nickname, accessToken, refreshToken } = await this.authService.googleLogin(req.user);
     this.setCookies(accessToken, refreshToken, res);
 
-    const redirectUrl = 'http://localhost:5173';
+    const redirectUrl = process.env.SSO_REDIRECT_URL;
     return res.redirect(HttpStatus.FOUND, redirectUrl);
   }
 }

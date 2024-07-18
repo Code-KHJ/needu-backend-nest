@@ -22,7 +22,6 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
         nickname: _json.kakao_account.profile.nickname,
         phonenumber: _json.kakao_account.phone_number,
       };
-      console.log(user);
       done(null, user);
     } catch (error) {
       done(error);
