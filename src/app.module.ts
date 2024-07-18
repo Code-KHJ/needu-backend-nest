@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './common/guards';
 import { SharedModule } from './shared/shared.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SharedModule } from './shared/shared.module';
     CorpModule,
     AuthModule,
     SharedModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [

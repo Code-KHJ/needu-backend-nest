@@ -1,7 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SharedService } from './shared.service';
-import { Public } from 'src/common/decorators';
+import { GetCurrentUser, Public } from 'src/common/decorators';
+import { ReportCreateDto } from './dto/report-create.dto';
 
 @ApiTags('Shared')
 @Controller('/api/shared')
@@ -28,5 +29,15 @@ export class SharedController {
   })
   getHashtag() {
     return this.sharedService.getHashtag();
+  }
+
+  @Post('/report')
+  @ApiOperation({ summary: '신고' })
+  @ApiResponse({
+    status: 201,
+    description: '신고 접수 완료',
+  })
+  async createReport(@GetCurrentUser('id') user_id: number, @Body() reportCreateDto: ReportCreateDto) {
+    return await this.sharedService.createReport(user_id, reportCreateDto);
   }
 }
