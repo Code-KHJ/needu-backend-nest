@@ -12,18 +12,18 @@ export class CommunityPost {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CommunityTopic)
-  @JoinColumn({ name: 'topic_id', referencedColumnName: 'id' })
-  topic: CommunityTopic;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
-
   @Column()
   @IsString()
   @MinLength(1)
   title: string;
+
+  @Column()
+  @IsNumber()
+  topic_id: number;
+
+  @Column()
+  @IsNumber()
+  user_id: number;
 
   @Column('text')
   @IsString()
@@ -48,6 +48,14 @@ export class CommunityPost {
   @Column()
   @IsNumber()
   view: number;
+
+  @ManyToOne(() => CommunityTopic)
+  @JoinColumn({ name: 'topic_id', referencedColumnName: 'id' })
+  topic: CommunityTopic;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
 
   @OneToMany(() => CommunityPostLike, like => like.post)
   likes: CommunityPostLike[];

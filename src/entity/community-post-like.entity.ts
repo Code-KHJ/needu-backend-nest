@@ -8,13 +8,13 @@ export class CommunityPostLike {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CommunityPost)
-  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
-  post: CommunityPost;
+  @Column()
+  @IsNumber()
+  post_id: number;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  @Column()
+  @IsNumber()
+  user_id: number;
 
   @Column()
   @IsNumber()
@@ -23,4 +23,12 @@ export class CommunityPostLike {
   @CreateDateColumn()
   @IsDateString()
   created_at: Date;
+
+  @ManyToOne(() => CommunityPost)
+  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
+  post: CommunityPost;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
 }

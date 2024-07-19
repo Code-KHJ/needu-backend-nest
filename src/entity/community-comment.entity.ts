@@ -10,17 +10,17 @@ export class CommunityComment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CommunityPost)
-  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
-  post: CommunityPost;
+  @Column()
+  @IsNumber()
+  post_id: number;
+
+  @Column()
+  @IsNumber()
+  user_id: number;
 
   @Column({ nullable: true })
   @IsNumber()
   parent_id: number;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
 
   @Column('text')
   content: string;
@@ -42,4 +42,12 @@ export class CommunityComment {
 
   @OneToMany(() => CommunityCommentLike, like => like.comment)
   likes: CommunityCommentLike[];
+
+  @ManyToOne(() => CommunityPost)
+  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
+  post: CommunityPost;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
 }

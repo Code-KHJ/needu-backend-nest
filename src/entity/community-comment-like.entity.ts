@@ -8,13 +8,13 @@ export class CommunityCommentLike {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CommunityComment)
-  @JoinColumn({ name: 'comment_id', referencedColumnName: 'id' })
-  comment: CommunityComment;
+  @Column()
+  @IsNumber()
+  comment_id: number;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  @Column()
+  @IsNumber()
+  user_id: number;
 
   @Column()
   @IsNumber()
@@ -23,4 +23,12 @@ export class CommunityCommentLike {
   @CreateDateColumn()
   @IsDateString()
   created_at: Date;
+
+  @ManyToOne(() => CommunityComment)
+  @JoinColumn({ name: 'comment_id', referencedColumnName: 'id' })
+  comment: CommunityComment;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
 }

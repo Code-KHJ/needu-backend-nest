@@ -15,6 +15,10 @@ export class Report {
   @IsNumber()
   target_id: number;
 
+  @Column()
+  @IsNumber()
+  user_id: number;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
@@ -33,5 +37,5 @@ export class Report {
 
   @Column()
   @IsBoolean()
-  resolved: boolean;
+  resolved: boolean = false;
 }

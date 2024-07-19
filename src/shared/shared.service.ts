@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CareerType } from 'src/entity/career-type.entity';
 import { Report } from 'src/entity/report.entity';
@@ -31,8 +31,10 @@ export class SharedService {
 
   async createReport(user_id: number, reportCreateDto: ReportCreateDto) {
     if (user_id !== reportCreateDto.user_id) {
-      return;
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
-    const report = await this.reportRepository.create();
+    const report = await this.reportRepository.create(reportCreateDto);
+    const result = await this.reportRepository.save(report);
+    console.log(result);
   }
 }

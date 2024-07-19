@@ -8,6 +8,10 @@ export class Notice {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  @IsNumber()
+  user_id: number;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
