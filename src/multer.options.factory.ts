@@ -20,7 +20,8 @@ export const multerOptionsFactory = (): MulterOptions => {
         const fileType = file.mimetype.split('/')[0];
         const ext = extname(file.originalname);
         const baseName = basename(file.originalname, ext);
-        const fileName = fileType === 'video' ? `videos/${baseName}-${Date.now()}${ext}` : `images/${baseName}-${Date.now()}${ext}`;
+        const encodedBaseName = encodeURIComponent(baseName);
+        const fileName = fileType === 'video' ? `videos/${encodedBaseName}-${Date.now()}${ext}` : `images/${encodedBaseName}-${Date.now()}${ext}`;
         callback(null, fileName);
       },
     }),

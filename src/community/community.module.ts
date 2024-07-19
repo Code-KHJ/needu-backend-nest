@@ -15,7 +15,7 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    MulterModule.registerAsync({imports:[ConfigModule], useFactory: multerOptionsFactory }),
+    MulterModule.registerAsync({ imports: [ConfigModule], useFactory: multerOptionsFactory }),
     TypeOrmModule.forFeature([
       CommunityPost,
       CommunityPostLike,

@@ -15,8 +15,7 @@ export class CommunityController {
     status: 201,
     description: '이미지 업로드 성공',
   })
-  async uploadImage(@UploadedFile() file: Express.MulterS3.File, @Body() imageUploadDto: any) {
-    console.log(file);
-    console.log(imageUploadDto);
+  async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
+    return { imageUrl: file.location };
   }
 }
