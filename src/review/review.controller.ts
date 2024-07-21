@@ -158,12 +158,8 @@ export class ReviewController {
     description: '실습 리뷰 수정',
   })
   async updateTrainingReview(@GetCurrentUser('user_id') userId: string, @Param('no') no: string, @Body() trainingCreateDto: TrainingCreateDto) {
-    try {
-      const response = await this.reviewService.updateTrainingReview(no, userId, trainingCreateDto);
-      return response;
-    } catch (e) {
-      console.log(e);
-    }
+    const response = await this.reviewService.updateTrainingReview(no, userId, trainingCreateDto);
+    return response;
   }
 
   @Delete('/training')

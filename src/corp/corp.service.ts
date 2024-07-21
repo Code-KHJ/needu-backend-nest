@@ -108,8 +108,8 @@ export class CorpService {
       .select(['c.id AS id', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews', 'rp')
       .addSelect([
-        'COUNT(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.id ELSE NULL END) AS cnt',
-        'ROUND(AVG(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.total_score ELSE NULL END),1) as avg',
+        'COUNT(CASE WHEN rp.is_del = 0 THEN rp.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN rp.is_del = 0 THEN rp.total_score ELSE NULL END),1) as avg',
       ])
       .where('c.corp_name LIKE :name', { name: `%${corp_name}%` })
       .andWhere('c.city LIKE :city', { city: `%${region}%` });
@@ -169,8 +169,8 @@ export class CorpService {
       .select(['c.id AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews', 'rp')
       .addSelect([
-        'COUNT(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.id ELSE NULL END) AS cnt',
-        'ROUND(AVG(CASE WHEN rp.is_del IS NULL OR rp.is_del <> 1 THEN rp.total_score ELSE NULL END),1) AS avg',
+        'COUNT(CASE WHEN rp.is_del = 0 THEN rp.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN rp.is_del = 0 THEN rp.total_score ELSE NULL END),1) AS avg',
       ])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')
@@ -203,11 +203,11 @@ export class CorpService {
       .select(['c.id AS id', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews_training', 'r')
       .addSelect([
-        'COUNT(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.id ELSE NULL END) AS cnt',
-        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.total_score ELSE NULL END),1) as avg',
-        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.number_of_participants ELSE NULL END),1) as number_of_participants',
-        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.cost/10000 ELSE NULL END),1) as cost',
-        'ROUND(AVG(CASE WHEN r.is_del IS NULL OR r.is_del <> 1 THEN r.duration ELSE NULL END),1) as duration',
+        'COUNT(CASE WHEN r.is_del = 0 THEN r.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN r.is_del  = 0 THEN r.total_score ELSE NULL END),1) as avg',
+        'ROUND(AVG(CASE WHEN r.is_del  = 0 THEN r.number_of_participants ELSE NULL END),1) as number_of_participants',
+        'ROUND(AVG(CASE WHEN r.is_del  = 0 THEN r.cost/10000 ELSE NULL END),1) as cost',
+        'ROUND(AVG(CASE WHEN r.is_del  = 0 THEN r.duration ELSE NULL END),1) as duration',
       ])
       .where('c.corp_name LIKE :name', { name: `%${corp_name}%` })
       .andWhere('c.city LIKE :city', { city: `%${region}%` });
@@ -339,8 +339,8 @@ export class CorpService {
       .select(['c.id AS no', 'c.corp_name AS corp_name', 'c.city AS city', 'c.gugun AS gugun', 'c.hashtag AS hashtag'])
       .leftJoin('c.reviews_training', 'rt')
       .addSelect([
-        'COUNT(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.id ELSE NULL END) AS cnt',
-        'ROUND(AVG(CASE WHEN rt.is_del IS NULL OR rt.is_del <> 1 THEN rt.total_score ELSE NULL END),1) AS avg',
+        'COUNT(CASE WHEN rt.is_del  = 0 THEN rt.id ELSE NULL END) AS cnt',
+        'ROUND(AVG(CASE WHEN rt.is_del  = 0 THEN rt.total_score ELSE NULL END),1) AS avg',
       ])
       .where('c.corp_name = :name', { name: name })
       .groupBy('c.corp_name')

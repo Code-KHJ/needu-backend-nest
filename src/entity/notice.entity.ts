@@ -36,7 +36,7 @@ export class Notice {
 
   @Column()
   @IsBoolean()
-  is_show: boolean;
+  is_show: boolean = false;
 
   @Column({ nullable: true })
   @IsNumber()
@@ -44,5 +44,5 @@ export class Notice {
 
   @Column()
   @IsNumber()
-  view: number;
+  view: number = 0;
 }

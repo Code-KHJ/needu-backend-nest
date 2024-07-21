@@ -18,7 +18,7 @@ export class Corp {
   @Column()
   gugun: string;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'json', nullable: true })
   hashtag: any;
 
   @OneToMany(() => Review, review => review.corp)

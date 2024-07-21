@@ -14,4 +14,8 @@ export class CommunityTopic {
   @Column()
   @IsString()
   topic: string;
+
+  @Column()
+  @IsString()
+  description: string;
 }

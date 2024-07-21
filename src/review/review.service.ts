@@ -189,7 +189,7 @@ export class ReviewService {
       .addSelect('AVG(r.culture_score)', 'culture_score')
       .addSelect('AVG(r.worklife_score)', 'worklife_score')
       .where('r.corp_name = :corpname', { corpname })
-      .andWhere('r.is_del IS NULL OR r.is_del <> 1')
+      .andWhere('r.is_del = 0')
       .getRawOne();
 
     return result;
@@ -295,7 +295,7 @@ export class ReviewService {
       .addSelect('AVG(r.recommend_score)', 'recommend_score')
       .addSelect('AVG(r.supervisor_score)', 'supervisor_score')
       .where('r.corp_name = :corpname', { corpname })
-      .andWhere('r.is_del IS NULL OR r.is_del <> 1')
+      .andWhere('r.is_del = 0')
       .getRawOne();
 
     return result;

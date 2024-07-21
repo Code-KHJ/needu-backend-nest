@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IsArray, IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsNumber, IsString, Length, MinLength } from 'class-validator';
 import { Corp } from './corp.entity';
 import { UserCareer } from './user-career.entity';
 import { BlindType } from './blind-type.entity';
@@ -78,10 +78,12 @@ export class Review {
   likes: number;
 
   @Column()
-  blind: number;
+  @IsNumber()
+  blind: number = 1;
 
   @Column()
-  is_del: boolean;
+  @IsBoolean()
+  is_del: boolean = false;
 
   @OneToOne(() => UserCareer, userCareer => userCareer.review)
   userCareer: UserCareer;

@@ -34,7 +34,11 @@ export class SharedService {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
     const report = await this.reportRepository.create(reportCreateDto);
-    const result = await this.reportRepository.save(report);
-    console.log(result);
+    const response = await this.reportRepository.save(report);
+    if (response.id) {
+      return { msg: '신고완료' };
+    } else {
+      throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+    }
   }
 }

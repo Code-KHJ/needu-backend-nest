@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { CommunityTopic } from './community-topic.entity';
 import { User } from './user.entity';
-import { IsDateString, IsNumber, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsString, MinLength } from 'class-validator';
 import { BlindType } from './blind-type.entity';
 import { CommunityPostLike } from './community-post-like.entity';
 import { CommunityComment } from './community-comment.entity';
@@ -39,15 +39,20 @@ export class CommunityPost {
   updated_at: Date;
 
   @Column()
-  is_del: boolean;
-
-  @ManyToOne(() => BlindType)
-  @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
-  blind: BlindType;
+  @IsBoolean()
+  is_del: boolean = false;
 
   @Column()
   @IsNumber()
-  view: number;
+  blind: number = 1;
+
+  @Column()
+  @IsNumber()
+  view: number = 0;
+
+  @ManyToOne(() => BlindType)
+  @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
+  blindType: BlindType;
 
   @ManyToOne(() => CommunityTopic)
   @JoinColumn({ name: 'topic_id', referencedColumnName: 'id' })

@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { CommunityPost } from './community-post.entity';
-import { IsBoolean, isDateString, IsDateString, IsNumber } from 'class-validator';
+import { IsBoolean, isDateString, IsDateString, isNumber, IsNumber } from 'class-validator';
 import { User } from './user.entity';
 import { BlindType } from './blind-type.entity';
 import { CommunityCommentLike } from './community-comment-like.entity';
@@ -34,11 +34,16 @@ export class CommunityComment {
   updated_at: Date;
 
   @Column()
-  is_del: boolean;
+  @IsBoolean()
+  is_del: boolean = false;
+
+  @Column()
+  @IsNumber()
+  blind: number = 1;
 
   @ManyToOne(() => BlindType)
   @JoinColumn({ name: 'blind', referencedColumnName: 'id' })
-  blind: BlindType;
+  blindType: BlindType;
 
   @OneToMany(() => CommunityCommentLike, like => like.comment)
   likes: CommunityCommentLike[];
