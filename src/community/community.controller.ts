@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommunityService } from './community.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCurrentUser, Public } from 'src/common/decorators';
 import { PostCreateDto } from './dto/post-create.dto';
+import { PostUpdateDto } from './dto/post-update.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -22,6 +23,28 @@ export class CommunityController {
     return response;
   }
 
+  @Get('/post/edit/:id')
+  @ApiOperation({ summary: '게시글 수정 위해 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 조회',
+  })
+  async getPostForEdit(@GetCurrentUser('id') userId: number, @Param('id') postId: number) {
+    const response = await this.communityService.getPostForEdit(userId, postId);
+    return response;
+  }
+
+  @Patch('/post/edit/:id')
+  @ApiOperation({ summary: '게시글 수정' })
+  @ApiResponse({
+    status: 201,
+    description: '게시글 수정',
+  })
+  async updatePost(@GetCurrentUser('id') userId: number, @Param('id') postId: number, @Body() postUpdateDto: PostUpdateDto) {
+    const response = await this.communityService.updatePost(userId, postUpdateDto);
+    return response;
+  }
+
   @UseInterceptors(FileInterceptor('image'))
   @Post('/image')
   @ApiOperation({ summary: '이미지 업로드' })
@@ -31,12 +54,6 @@ export class CommunityController {
   })
   async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
     return { imageUrl: file.location };
-  }
-
-  @Public()
-  @Get('/')
-  async test() {
-    this.communityService.test();
   }
 
   @Public()

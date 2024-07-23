@@ -7,7 +7,7 @@ export class CommunityTopic {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CommunityType, { nullable: false })
+  @ManyToOne(() => CommunityType, { nullable: false, eager: true })
   @JoinColumn({ name: 'type_id', referencedColumnName: 'id' })
   type: CommunityType;
 
