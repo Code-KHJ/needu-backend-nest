@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './common/guards';
 import { SharedModule } from './shared/shared.module';
 import { CommunityModule } from './community/community.module';
+import { NoticeModule } from './notice/notice.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CommunityModule } from './community/community.module';
     AuthModule,
     SharedModule,
     CommunityModule,
+    NoticeModule,
   ],
   controllers: [AppController],
   providers: [

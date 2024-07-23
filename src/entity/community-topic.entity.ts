@@ -15,7 +15,7 @@ export class CommunityTopic {
   @IsString()
   topic: string;
 
-  @Column()
+  @Column({ nullable: true })
   @IsString()
   description: string;
 }
