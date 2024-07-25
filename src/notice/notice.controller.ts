@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { NoticeService } from './notice.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { RoleType } from 'src/common/role-type';
 import { Roles } from 'src/common/decorators/role.decorator';
@@ -8,7 +8,8 @@ import { GetCurrentUser } from 'src/common/decorators';
 import { NoticeCreateDto } from './dto/notice-create.dto';
 import { NoticeUpdateDto } from './dto/notice-update.dto';
 
-@Controller('notice')
+@ApiTags('Notice')
+@Controller('/api/notice')
 export class NoticeController {
   constructor(private noticeService: NoticeService) {}
 
