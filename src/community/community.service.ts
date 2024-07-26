@@ -45,7 +45,7 @@ export class CommunityService {
   async getPostForEdit(userId: number, postId: number) {
     const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['topic'] });
 
-    if (!post.id) {
+    if (!post.id || post.is_del) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (userId !== post.user_id) {
@@ -98,6 +98,26 @@ export class CommunityService {
     }
 
     return { post: savedPost };
+  }
+
+  async deletePost(userId: number, postId: number) {
+    const post = await this.communityPostRepository.findOneBy({ id: postId });
+    if (!post.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (userId !== post.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    post.updated_at = new Date();
+    post.is_del = true;
+
+    const savedPost = await this.communityPostRepository.save(post);
+    if (!savedPost.id) {
+      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return { success: true, msg: '삭제완료' };
   }
 
   async getTopic(type_id: number) {

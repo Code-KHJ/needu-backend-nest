@@ -80,4 +80,25 @@ export class NoticeService {
 
     return { notice: savedNotice };
   }
+
+  async deleteNotice(userId: number, noticeId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user.authority !== 100) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    const notice = await this.noticeRepository.findOneBy({ id: noticeId });
+    if (!notice.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    notice.updated_at = new Date();
+    notice.is_del = true;
+
+    const savedNotice = await this.noticeRepository.save(notice);
+    if (!savedNotice.id) {
+      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return { notice: savedNotice };
+  }
 }

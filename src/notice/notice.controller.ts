@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { NoticeService } from './notice.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -49,9 +49,22 @@ export class NoticeController {
     status: 201,
     description: '공지사항 수정',
   })
-  async updateNotice(@GetCurrentUser('id') userId: number, @Param('id') postId: number, @Body() noticeUpdateDto: NoticeUpdateDto) {
+  async updateNotice(@GetCurrentUser('id') userId: number, @Param('id') noticeId: number, @Body() noticeUpdateDto: NoticeUpdateDto) {
     const response = await this.noticeService.updateNotice(userId, noticeUpdateDto);
 
+    return response;
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
+  @Delete('/:id')
+  @ApiOperation({ summary: '공지사항 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '공지사항 삭제',
+  })
+  async deleteNotice(@GetCurrentUser('id') userId: number, @Param('id') noticeId: number) {
+    const response = await this.noticeService.deleteNotice(userId, noticeId);
     return response;
   }
 }

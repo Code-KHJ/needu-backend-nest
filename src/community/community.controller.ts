@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommunityService } from './community.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -42,6 +42,17 @@ export class CommunityController {
   })
   async updatePost(@GetCurrentUser('id') userId: number, @Param('id') postId: number, @Body() postUpdateDto: PostUpdateDto) {
     const response = await this.communityService.updatePost(userId, postUpdateDto);
+    return response;
+  }
+
+  @Delete('/post/:id')
+  @ApiOperation({ summary: '게시글 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 삭제',
+  })
+  async deletePost(@GetCurrentUser('id') userId: number, @Param('id') postId: number) {
+    const response = await this.communityService.deletePost(userId, postId);
     return response;
   }
 
