@@ -1,7 +1,9 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { IsBoolean, IsDateString, IsNumber, IsString, MinLength } from 'class-validator';
 
 import { User } from './user.entity';
+import { NoticeLike } from './notice-like.entity';
+import { NoticeComment } from './notice-comment.entity';
 
 @Entity({ name: 'notice' })
 export class Notice {
@@ -49,4 +51,10 @@ export class Notice {
   @Column()
   @IsBoolean()
   is_del: boolean = false;
+
+  @OneToMany(() => NoticeLike, like => like.notice)
+  likes: NoticeLike[];
+
+  @OneToMany(() => NoticeComment, comment => comment.notice)
+  comments: NoticeComment[];
 }
