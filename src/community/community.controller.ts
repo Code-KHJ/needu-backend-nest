@@ -5,6 +5,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCurrentUser, Public } from 'src/common/decorators';
 import { PostCreateDto } from './dto/post-create.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
+import { PostLikeDto } from './dto/post-like.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -23,6 +24,18 @@ export class CommunityController {
     return response;
   }
 
+  @Public()
+  @Get('/post/:id')
+  @ApiOperation({ summary: '게시글 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '게시물 조회 완료',
+  })
+  async getPost(@Param('id') postId: number) {
+    const response = await this.communityService.getPost(postId);
+    return response;
+  }
+
   @Get('/post/edit/:id')
   @ApiOperation({ summary: '게시글 수정 위해 조회' })
   @ApiResponse({
@@ -31,6 +44,29 @@ export class CommunityController {
   })
   async getPostForEdit(@GetCurrentUser('id') userId: number, @Param('id') postId: number) {
     const response = await this.communityService.getPostForEdit(userId, postId);
+    return response;
+  }
+
+  @Public()
+  @Patch('/post/view/:id')
+  @ApiOperation({ summary: '게시글 view 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 view 수정',
+  })
+  async updateView(@Param('id') postId: number) {
+    const response = await this.communityService.updateView(postId);
+    return response;
+  }
+
+  @Patch('/post/like/:id')
+  @ApiOperation({ summary: '게시글 좋아요 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 좋아요 수정',
+  })
+  async updatePostLike(@GetCurrentUser('id') userId: number, @Param('id') postId: number, @Body() postLikeDto: PostLikeDto) {
+    const response = await this.communityService.updatePostLike(userId, postLikeDto);
     return response;
   }
 

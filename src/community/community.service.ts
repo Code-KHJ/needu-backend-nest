@@ -6,6 +6,9 @@ import { Repository } from 'typeorm';
 import { PostCreateDto } from './dto/post-create.dto';
 import { CommunityPost } from 'src/entity/community-post.entity';
 import { PostUpdateDto } from './dto/post-update.dto';
+import { PostGetResponseDto } from './dto/post-get.dto';
+import { PostLikeDto } from './dto/post-like.dto';
+import { CommunityPostLike } from 'src/entity/community-post-like.entity';
 
 @Injectable()
 export class CommunityService {
@@ -14,6 +17,8 @@ export class CommunityService {
     private readonly communityTopicRepository: Repository<CommunityTopic>,
     @InjectRepository(CommunityPost)
     private readonly communityPostRepository: Repository<CommunityPost>,
+    @InjectRepository(CommunityPostLike)
+    private readonly communityPostLikeRepository: Repository<CommunityPostLike>,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -40,6 +45,79 @@ export class CommunityService {
     }
 
     return { post: savedPost };
+  }
+
+  async getPost(postId: number) {
+    const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user', 'topic', 'likes', 'comment_accepted'] });
+
+    if (!post.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (post.is_del) {
+      return { msg: 'is_del' };
+    }
+    if (post.blind > 1) {
+      return { msg: 'is_blind', blind: post.blindType.reason };
+    }
+    const result = new PostGetResponseDto(post);
+    return result;
+  }
+
+  async updateView(postId: number) {
+    const post = await this.communityPostRepository.findOne({ where: { id: postId } });
+
+    if (!post.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    post.view += 1;
+    await this.communityPostRepository.save(post);
+
+    return;
+  }
+
+  async updatePostLike(userId: number, postLikeDto: PostLikeDto) {
+    if (userId !== postLikeDto.user_id || !userId) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+    const post = await this.communityPostRepository.findOne({ where: { id: postLikeDto.post_id } });
+    if (!post.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const like = await this.communityPostLikeRepository.findOne({ where: { post_id: postLikeDto.post_id, user_id: postLikeDto.user_id } });
+    if (postLikeDto.type === 'like') {
+      if (!like) {
+        const newLike = await this.communityPostLikeRepository.create({
+          post_id: postLikeDto.post_id,
+          user_id: postLikeDto.user_id,
+          type: 1,
+        });
+        await this.communityPostLikeRepository.save(newLike);
+        return { success: true, msg: '좋아요' };
+      }
+      if (like.type === 1) {
+        await this.communityPostLikeRepository.remove(like);
+        return { success: true, msg: '좋아요 취소' };
+      }
+      return { success: false, msg: '타입 오류' };
+    }
+    if (postLikeDto.type === 'dislike') {
+      if (!like) {
+        const newLike = await this.communityPostLikeRepository.create({
+          post_id: postLikeDto.post_id,
+          user_id: postLikeDto.user_id,
+          type: -1,
+        });
+        await this.communityPostLikeRepository.save(newLike);
+        return { success: true, msg: '싫어요' };
+      }
+      if (like.type === -1) {
+        await this.communityPostLikeRepository.remove(like);
+        return { success: true, msg: '싫어요 취소' };
+      }
+      return { success: false, msg: '타입 오류' };
+    }
   }
 
   async getPostForEdit(userId: number, postId: number) {
