@@ -7,6 +7,7 @@ import { PostCreateDto } from './dto/post-create.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { PostLikeDto } from './dto/post-like.dto';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
+import { CommentLikeDto } from './dto/comment-like.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -110,6 +111,17 @@ export class CommunityController {
   @ApiResponse({ status: 200, description: '게시글 댓글 조회 완료' })
   async getComments(@Param('id') postId: number) {
     const response = await this.communityService.getComments(postId);
+    return response;
+  }
+
+  @Patch('/comment/like/:id')
+  @ApiOperation({ summary: '댓글 좋아요 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 좋아요 수정',
+  })
+  async updateCommentLike(@GetCurrentUser('id') userId: number, @Body() commentLikeDto: CommentLikeDto) {
+    const response = await this.communityService.updateCommentLike(userId, commentLikeDto);
     return response;
   }
 

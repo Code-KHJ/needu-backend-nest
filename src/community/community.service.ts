@@ -12,6 +12,8 @@ import { CommunityPostLike } from 'src/entity/community-post-like.entity';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommunityComment } from 'src/entity/community-comment.entity';
 import { CommentGetResponseDto } from './dto/comment-get.dto';
+import { CommentLikeDto } from './dto/comment-like.dto';
+import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 
 @Injectable()
 export class CommunityService {
@@ -24,6 +26,8 @@ export class CommunityService {
     private readonly communityPostLikeRepository: Repository<CommunityPostLike>,
     @InjectRepository(CommunityComment)
     private readonly communityCommentRepository: Repository<CommunityComment>,
+    @InjectRepository(CommunityCommentLike)
+    private readonly communityCommentLikeRepository: Repository<CommunityCommentLike>,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -235,6 +239,50 @@ export class CommunityService {
     });
     const result = comments.map(comment => new CommentGetResponseDto(comment));
     return result;
+  }
+
+  async updateCommentLike(userId: number, commentLikeDto: CommentLikeDto) {
+    if (userId !== commentLikeDto.user_id || !userId) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+    const comment = await this.communityCommentRepository.findOne({ where: { id: commentLikeDto.comment_id } });
+    if (!comment.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const like = await this.communityCommentLikeRepository.findOne({ where: { comment_id: commentLikeDto.comment_id, user_id: commentLikeDto.user_id } });
+    if (commentLikeDto.type === 'like') {
+      if (!like) {
+        const newLike = await this.communityCommentLikeRepository.create({
+          comment_id: commentLikeDto.comment_id,
+          user_id: commentLikeDto.user_id,
+          type: 1,
+        });
+        await this.communityCommentLikeRepository.save(newLike);
+        return { success: true, msg: '좋아요' };
+      }
+      if (like.type === 1) {
+        await this.communityCommentLikeRepository.remove(like);
+        return { success: true, msg: '좋아요 취소' };
+      }
+      return { success: false, msg: '타입 오류' };
+    }
+    if (commentLikeDto.type === 'dislike') {
+      if (!like) {
+        const newLike = await this.communityCommentLikeRepository.create({
+          comment_id: commentLikeDto.comment_id,
+          user_id: commentLikeDto.user_id,
+          type: -1,
+        });
+        await this.communityCommentLikeRepository.save(newLike);
+        return { success: true, msg: '싫어요' };
+      }
+      if (like.type === -1) {
+        await this.communityCommentLikeRepository.remove(like);
+        return { success: true, msg: '싫어요 취소' };
+      }
+      return { success: false, msg: '타입 오류' };
+    }
   }
 
   // 공통
