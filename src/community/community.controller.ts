@@ -6,6 +6,7 @@ import { GetCurrentUser, Public } from 'src/common/decorators';
 import { PostCreateDto } from './dto/post-create.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { PostLikeDto } from './dto/post-like.dto';
+import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -89,6 +90,26 @@ export class CommunityController {
   })
   async deletePost(@GetCurrentUser('id') userId: number, @Param('id') postId: number) {
     const response = await this.communityService.deletePost(userId, postId);
+    return response;
+  }
+
+  @Post('/comment')
+  @ApiOperation({ summary: '댓글 작성' })
+  @ApiResponse({
+    status: 201,
+    description: '댓글 작성 완료',
+  })
+  async createComment(@GetCurrentUser('id') userId: number, @Body() commentCreateDto: CommunityCommentCreateDto) {
+    const response = await this.communityService.createComment(userId, commentCreateDto);
+    return response;
+  }
+
+  @Public()
+  @Get('/comment/:id')
+  @ApiOperation({ summary: '게시글 댓글 조회' })
+  @ApiResponse({ status: 200, description: '게시글 댓글 조회 완료' })
+  async getComments(@Param('id') postId: number) {
+    const response = await this.communityService.getComments(postId);
     return response;
   }
 

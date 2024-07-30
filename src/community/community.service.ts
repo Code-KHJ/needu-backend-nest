@@ -9,6 +9,9 @@ import { PostUpdateDto } from './dto/post-update.dto';
 import { PostGetResponseDto } from './dto/post-get.dto';
 import { PostLikeDto } from './dto/post-like.dto';
 import { CommunityPostLike } from 'src/entity/community-post-like.entity';
+import { CommunityCommentCreateDto } from './dto/comment-create.dto';
+import { CommunityComment } from 'src/entity/community-comment.entity';
+import { CommentGetResponseDto } from './dto/comment-get.dto';
 
 @Injectable()
 export class CommunityService {
@@ -19,6 +22,8 @@ export class CommunityService {
     private readonly communityPostRepository: Repository<CommunityPost>,
     @InjectRepository(CommunityPostLike)
     private readonly communityPostLikeRepository: Repository<CommunityPostLike>,
+    @InjectRepository(CommunityComment)
+    private readonly communityCommentRepository: Repository<CommunityComment>,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -198,6 +203,41 @@ export class CommunityService {
     return { success: true, msg: '삭제완료' };
   }
 
+  // 댓글
+  async createComment(userId: number, commentCreateDto: CommunityCommentCreateDto) {
+    const { content, user_id, post_id, parent_id } = commentCreateDto;
+
+    if (userId !== user_id) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+    const post = await this.communityPostRepository.findOne({ where: { id: post_id } });
+    if (!post.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const validContent = await this.perspective(content);
+    if (!validContent) {
+      throw new HttpException({ msg: 'Invalid content' }, HttpStatus.BAD_REQUEST);
+    }
+
+    const comment = await this.communityCommentRepository.create(commentCreateDto);
+    const savedComment = await this.communityCommentRepository.save(comment);
+    if (!savedComment.id) {
+      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return { success: true, comment: savedComment };
+  }
+
+  async getComments(postId: number) {
+    const comments = await this.communityCommentRepository.find({
+      where: { post_id: postId },
+      relations: ['user', 'likes'],
+    });
+    const result = comments.map(comment => new CommentGetResponseDto(comment));
+    return result;
+  }
+
+  // 공통
   async getTopic(type_id: number) {
     const topics = await this.communityTopicRepository.find({
       where: { type: { id: type_id } },
