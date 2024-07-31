@@ -57,7 +57,7 @@ export class CommunityService {
   }
 
   async getPost(postId: number) {
-    const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user', 'topic', 'likes', 'comment_accepted'] });
+    const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user', 'topic', 'likes', 'comment_accepted', 'comments'] });
 
     if (!post.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -234,7 +234,7 @@ export class CommunityService {
 
   async getComments(postId: number) {
     const comments = await this.communityCommentRepository.find({
-      where: { post_id: postId },
+      where: { post_id: postId, is_del: false },
       relations: ['user', 'likes'],
     });
     const result = comments.map(comment => new CommentGetResponseDto(comment));
@@ -283,6 +283,26 @@ export class CommunityService {
       }
       return { success: false, msg: '타입 오류' };
     }
+  }
+
+  async deleteComment(userId: number, commentId: number) {
+    const comment = await this.communityCommentRepository.findOneBy({ id: commentId });
+    if (!comment.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (userId !== comment.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    comment.updated_at = new Date();
+    comment.is_del = true;
+
+    const savedComment = await this.communityCommentRepository.save(comment);
+    if (!savedComment.id) {
+      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return { success: true, msg: '삭제완료' };
   }
 
   // 공통

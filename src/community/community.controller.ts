@@ -125,6 +125,17 @@ export class CommunityController {
     return response;
   }
 
+  @Delete('/comment/:id')
+  @ApiOperation({ summary: '댓글 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 삭제',
+  })
+  async deleteComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number) {
+    const response = await this.communityService.deleteComment(userId, commentId);
+    return response;
+  }
+
   @UseInterceptors(FileInterceptor('image'))
   @Post('/image')
   @ApiOperation({ summary: '이미지 업로드' })

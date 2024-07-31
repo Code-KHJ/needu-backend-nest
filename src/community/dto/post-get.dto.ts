@@ -24,6 +24,7 @@ export class PostGetResponseDto {
     // user_level: string;
   };
   postLikes: CommunityPostLike[];
+  comment_cnt: number;
 
   constructor(post: CommunityPost) {
     this.id = post.id;
@@ -37,6 +38,7 @@ export class PostGetResponseDto {
     this.topicType = post.topic.topic;
     this.commentAccepted = post.comment_accepted?.comment.id;
     this.postLikes = post.likes;
+    this.comment_cnt = post.comments.length;
     this.writer = {
       id: post.user.id,
       nickname: post.user.nickname,
