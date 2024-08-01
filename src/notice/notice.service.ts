@@ -187,12 +187,12 @@ export class NoticeService {
 
   //댓글
   async createComment(userId: number, commentCreateDto: NoticeCommentCreateDto) {
-    const { content, user_id, notice_id, parent_id } = commentCreateDto;
+    const { content, user_id, post_id, parent_id } = commentCreateDto;
 
     if (userId !== user_id) {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
-    const notice = await this.noticeRepository.findOne({ where: { id: notice_id } });
+    const notice = await this.noticeRepository.findOne({ where: { id: post_id } });
     if (!notice.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
@@ -212,7 +212,7 @@ export class NoticeService {
 
   async getComments(noticeId: number) {
     const comments = await this.noticeCommentRepository.find({
-      where: { notice_id: noticeId, is_del: false },
+      where: { post_id: noticeId, is_del: false },
       relations: ['user', 'likes'],
     });
     const result = comments.map(comment => new NoticeCommentGetResponseDto(comment));
@@ -261,6 +261,27 @@ export class NoticeService {
       }
       return { success: false, msg: '타입 오류' };
     }
+  }
+
+  async updateComment(userId: number, commentId: number, content: string) {
+    const comment = await this.noticeCommentRepository.findOne({ where: { id: commentId } });
+    if (!comment.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (userId !== comment.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+    const validContent = await this.perspective(content);
+    if (!validContent) {
+      throw new HttpException({ msg: 'Invalid content' }, HttpStatus.BAD_REQUEST);
+    }
+
+    comment.content = content;
+    const savedComment = await this.noticeCommentRepository.save(comment);
+    if (!savedComment.id) {
+      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return savedComment;
   }
 
   async deleteComment(userId: number, commentId: number) {

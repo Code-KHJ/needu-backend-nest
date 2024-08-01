@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsNumber } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { BlindType } from './blind-type.entity';
 import { Notice } from './notice.entity';
@@ -12,7 +12,7 @@ export class NoticeComment {
 
   @Column()
   @IsNumber()
-  notice_id: number;
+  post_id: number;
 
   @Column()
   @IsNumber()
@@ -20,9 +20,11 @@ export class NoticeComment {
 
   @Column({ nullable: true })
   @IsNumber()
+  @IsOptional()
   parent_id: number;
 
-  @Column('text')
+  @Column()
+  @IsString()
   content: string;
 
   @CreateDateColumn()
@@ -49,7 +51,7 @@ export class NoticeComment {
   likes: NoticeCommentLike[];
 
   @ManyToOne(() => Notice)
-  @JoinColumn({ name: 'notice_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
   notice: Notice;
 
   @ManyToOne(() => User)

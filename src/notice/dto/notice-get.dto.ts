@@ -26,6 +26,7 @@ export class NoticeGetResponseDto {
     this.created_at = notice.created_at;
     this.view = notice.view;
     this.is_del = notice.is_del;
+    this.noticeLikes = notice.likes;
     this.writer = {
       id: notice.user.id,
       nickname: notice.user.nickname,

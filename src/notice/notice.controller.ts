@@ -137,6 +137,17 @@ export class NoticeController {
     return response;
   }
 
+  @Patch('/comment/edit/:id')
+  @ApiOperation({ summary: '댓글 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 수정',
+  })
+  async updateComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number, @Body() content: string) {
+    const response = await this.noticeService.updateComment(userId, commentId, content);
+    return response;
+  }
+
   @Delete('/comment/:id')
   @ApiOperation({ summary: '댓글 삭제' })
   @ApiResponse({

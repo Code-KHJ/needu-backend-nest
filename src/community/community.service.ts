@@ -285,6 +285,27 @@ export class CommunityService {
     }
   }
 
+  async updateComment(userId: number, commentId: number, content: string) {
+    const comment = await this.communityCommentRepository.findOne({ where: { id: commentId } });
+    if (!comment.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (userId !== comment.user_id) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+    const validContent = await this.perspective(content);
+    if (!validContent) {
+      throw new HttpException({ msg: 'Invalid content' }, HttpStatus.BAD_REQUEST);
+    }
+
+    comment.content = content;
+    const savedComment = await this.communityCommentRepository.save(comment);
+    if (!savedComment.id) {
+      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return savedComment;
+  }
+
   async deleteComment(userId: number, commentId: number) {
     const comment = await this.communityCommentRepository.findOneBy({ id: commentId });
     if (!comment.id) {
