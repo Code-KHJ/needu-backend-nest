@@ -106,7 +106,7 @@ export class CommunityController {
   }
 
   @Public()
-  @Get('/comment/:id')
+  @Get('/post/:id/comments')
   @ApiOperation({ summary: '게시글 댓글 조회' })
   @ApiResponse({ status: 200, description: '게시글 댓글 조회 완료' })
   async getComments(@Param('id') postId: number) {

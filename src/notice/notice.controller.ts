@@ -4,9 +4,12 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { RoleType } from 'src/common/role-type';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { GetCurrentUser } from 'src/common/decorators';
+import { GetCurrentUser, Public } from 'src/common/decorators';
 import { NoticeCreateDto } from './dto/notice-create.dto';
 import { NoticeUpdateDto } from './dto/notice-update.dto';
+import { NoticeLikeDto } from './dto/notice-like.dto';
+import { NoticeCommentCreateDto } from './dto/comment-create.dto';
+import { NoticeCommentLikeDto } from './dto/comment-like.dto';
 
 @ApiTags('Notice')
 @Controller('/api/notice')
@@ -27,6 +30,18 @@ export class NoticeController {
     return response;
   }
 
+  @Public()
+  @Get('/:id')
+  @ApiOperation({ summary: '공지사항 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '공지사항 조회 완료',
+  })
+  async getNotice(@Param('id') noticeId: number) {
+    const response = await this.noticeService.getNotice(noticeId);
+    return response;
+  }
+
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
   @Get('/edit/:id')
@@ -38,6 +53,29 @@ export class NoticeController {
   async getNoticeForEdit(@GetCurrentUser('id') userId: number, @Param('id') noticeId: number) {
     const response = await this.noticeService.getNoticeForEdit(userId, noticeId);
 
+    return response;
+  }
+
+  @Public()
+  @Patch('/view/:id')
+  @ApiOperation({ summary: '공지사항 view 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '공지사항 view 수정',
+  })
+  async updateView(@Param('id') noticeId: number) {
+    const response = await this.noticeService.updateView(noticeId);
+    return response;
+  }
+
+  @Patch('/like/:id')
+  @ApiOperation({ summary: '공지사항 좋아요 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '공지사항 좋아요 수정',
+  })
+  async updateNoticeLike(@GetCurrentUser('id') userId: number, @Param('id') noticeId: number, @Body() noticeLikeDto: NoticeLikeDto) {
+    const response = await this.noticeService.updateNoticeLike(userId, noticeLikeDto);
     return response;
   }
 
@@ -65,6 +103,48 @@ export class NoticeController {
   })
   async deleteNotice(@GetCurrentUser('id') userId: number, @Param('id') noticeId: number) {
     const response = await this.noticeService.deleteNotice(userId, noticeId);
+    return response;
+  }
+
+  @Post('/comment')
+  @ApiOperation({ summary: '댓글 작성' })
+  @ApiResponse({
+    status: 201,
+    description: '댓글 작성 완료',
+  })
+  async createComment(@GetCurrentUser('id') userId: number, @Body() commentCreateDto: NoticeCommentCreateDto) {
+    const response = await this.noticeService.createComment(userId, commentCreateDto);
+    return response;
+  }
+
+  @Public()
+  @Get('/:id/comments')
+  @ApiOperation({ summary: '게시글 댓글 조회' })
+  @ApiResponse({ status: 200, description: '게시글 댓글 조회 완료' })
+  async getComments(@Param('id') noticeId: number) {
+    const response = await this.noticeService.getComments(noticeId);
+    return response;
+  }
+
+  @Patch('/comment/like/:id')
+  @ApiOperation({ summary: '댓글 좋아요 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 좋아요 수정',
+  })
+  async updateCommentLike(@GetCurrentUser('id') userId: number, @Body() commentLikeDto: NoticeCommentLikeDto) {
+    const response = await this.noticeService.updateCommentLike(userId, commentLikeDto);
+    return response;
+  }
+
+  @Delete('/comment/:id')
+  @ApiOperation({ summary: '댓글 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 삭제',
+  })
+  async deleteComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number) {
+    const response = await this.noticeService.deleteComment(userId, commentId);
     return response;
   }
 }

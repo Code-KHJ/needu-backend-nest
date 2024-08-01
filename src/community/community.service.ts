@@ -293,6 +293,10 @@ export class CommunityService {
     if (userId !== comment.user_id) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
+    const childComment = await this.communityCommentRepository.find({ where: { parent_id: commentId, is_del: false } });
+    if (childComment.length > 0) {
+      return { success: true, msg: '대댓글 존재' };
+    }
 
     comment.updated_at = new Date();
     comment.is_del = true;
