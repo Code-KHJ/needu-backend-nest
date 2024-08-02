@@ -38,7 +38,7 @@ export class PostGetResponseDto {
     this.topicType = post.topic.topic;
     this.commentAccepted = post.comment_accepted?.comment.id;
     this.postLikes = post.likes;
-    this.comment_cnt = post.comments.length;
+    this.comment_cnt = post.comments.filter(comment => !comment.is_del).length;
     this.writer = {
       id: post.user.id,
       nickname: post.user.nickname,
