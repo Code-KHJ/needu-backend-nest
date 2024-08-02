@@ -309,12 +309,17 @@ export class NoticeService {
   }
 
   async perspective(text: string) {
-    const perspective = new Perspective({ apiKey: process.env.GOOGLE_PERSPECTIVE_API_KEY });
-    const response = await perspective.analyze(text);
-    const score = response.attributeScores.TOXICITY.summaryScore.value;
-    if (score > 0.35) {
-      return false;
-    } else {
+    try {
+      const perspective = new Perspective({ apiKey: process.env.GOOGLE_PERSPECTIVE_API_KEY });
+      const response = await perspective.analyze(text);
+      const score = response.attributeScores.TOXICITY.summaryScore.value;
+      if (score > 0.35) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      console.error(error);
       return true;
     }
   }
