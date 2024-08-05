@@ -143,8 +143,8 @@ export class NoticeController {
     status: 200,
     description: '댓글 수정',
   })
-  async updateComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number, @Body() content: string) {
-    const response = await this.noticeService.updateComment(userId, commentId, content);
+  async updateComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number, @Body() updateDto: any) {
+    const response = await this.noticeService.updateComment(userId, commentId, updateDto.content);
     return response;
   }
 

@@ -8,6 +8,7 @@ import { PostUpdateDto } from './dto/post-update.dto';
 import { PostLikeDto } from './dto/post-like.dto';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommentLikeDto } from './dto/comment-like.dto';
+import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -131,8 +132,8 @@ export class CommunityController {
     status: 200,
     description: '댓글 수정',
   })
-  async updateComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number, @Body() content: string) {
-    const response = await this.communityService.updateComment(userId, commentId, content);
+  async updateComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number, @Body() updateDto: any) {
+    const response = await this.communityService.updateComment(userId, commentId, updateDto.content);
     return response;
   }
 
@@ -144,6 +145,28 @@ export class CommunityController {
   })
   async deleteComment(@GetCurrentUser('id') userId: number, @Param('id') commentId: number) {
     const response = await this.communityService.deleteComment(userId, commentId);
+    return response;
+  }
+
+  @Post('/comment/accept')
+  @ApiOperation({ summary: '댓글 채택' })
+  @ApiResponse({
+    status: 201,
+    description: '댓글 채택',
+  })
+  async acceptComment(@GetCurrentUser('id') userId: number, @Body() acceptDto: CommunityCommentAcceptDto) {
+    const response = await this.communityService.acceptComment(userId, acceptDto);
+    return response;
+  }
+
+  @Delete('/comment/accept/:id')
+  @ApiOperation({ summary: '댓글 채택 취소' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 채택 취소',
+  })
+  async unaccpetComment(@GetCurrentUser('id') userId: number, @Param('id') acceptedId: number) {
+    const response = await this.communityService.unacceptComment(userId, acceptedId);
     return response;
   }
 

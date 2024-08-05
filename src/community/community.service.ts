@@ -14,6 +14,8 @@ import { CommunityComment } from 'src/entity/community-comment.entity';
 import { CommentGetResponseDto } from './dto/comment-get.dto';
 import { CommentLikeDto } from './dto/comment-like.dto';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
+import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
+import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
 
 @Injectable()
 export class CommunityService {
@@ -28,6 +30,8 @@ export class CommunityService {
     private readonly communityCommentRepository: Repository<CommunityComment>,
     @InjectRepository(CommunityCommentLike)
     private readonly communityCommentLikeRepository: Repository<CommunityCommentLike>,
+    @InjectRepository(CommunityCommentAccepted)
+    private readonly communityCommentAcceptedRepository: Repository<CommunityCommentAccepted>,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -328,6 +332,39 @@ export class CommunityService {
     }
 
     return { success: true, msg: '삭제완료' };
+  }
+
+  async acceptComment(userId: number, acceptDto: CommunityCommentAcceptDto) {
+    const { post_id, comment_id } = acceptDto;
+    const post = await this.communityPostRepository.findOne({ where: { id: post_id } });
+    const comment = await this.communityCommentRepository.findOne({ where: { id: comment_id } });
+    if (!post.id || !comment.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (post.user_id !== userId) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    const Dto = {
+      post: post,
+      comment: comment,
+    };
+    const accept = await this.communityCommentAcceptedRepository.create(Dto);
+    const savedAccept = await this.communityCommentAcceptedRepository.save(accept);
+
+    return { success: true, msg: '채택 완료' };
+  }
+
+  async unacceptComment(userId: number, acceptedId: number) {
+    const accepted = await this.communityCommentAcceptedRepository.findOne({ where: { comment: { id: acceptedId } } });
+    if (!accepted.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (accepted.post.user_id !== userId) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+    await this.communityCommentAcceptedRepository.remove(accepted);
+    return { success: true, msg: '채택 취소' };
   }
 
   // 공통

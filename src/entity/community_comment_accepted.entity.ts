@@ -7,11 +7,11 @@ export class CommunityCommentAccepted {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => CommunityPost)
-  @JoinColumn({ name: 'port_id', referencedColumnName: 'id' })
+  @OneToOne(() => CommunityPost, { eager: true })
+  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
   post: CommunityPost;
 
-  @OneToOne(() => CommunityComment)
+  @OneToOne(() => CommunityComment, { eager: true })
   @JoinColumn({ name: 'comment_id', referencedColumnName: 'id' })
   comment: CommunityComment;
 }
