@@ -1,5 +1,6 @@
 import { OmitType, PickType } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { CommunityPostLike } from 'src/entity/community-post-like.entity';
 import { CommunityPost } from 'src/entity/community-post.entity';
 
@@ -46,4 +47,28 @@ export class PostGetResponseDto {
       // userLevel: post.user.userLevel,     // assuming this property exists in the user object
     };
   }
+}
+
+export class PostsGetDto {
+  @IsOptional()
+  @IsString()
+  type: string;
+
+  @IsOptional()
+  @IsString()
+  topic: string;
+
+  @IsOptional()
+  @IsString()
+  search: string;
+
+  @IsOptional()
+  @IsString()
+  order: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(1)
+  page: number;
 }

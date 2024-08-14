@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, Delete, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommunityService } from './community.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -9,6 +9,7 @@ import { PostLikeDto } from './dto/post-like.dto';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommentLikeDto } from './dto/comment-like.dto';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
+import { PostsGetDto } from './dto/post-get.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -23,6 +24,19 @@ export class CommunityController {
   })
   async createPost(@GetCurrentUser('id') userId: number, @Body() postCreateDto: PostCreateDto) {
     const response = await this.communityService.createPost(userId, postCreateDto);
+
+    return response;
+  }
+
+  @Public()
+  @Get('/post')
+  @ApiOperation({ summary: '게시글 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 목록 조회 성공',
+  })
+  async getPostList(@Query() postsGetDto: PostsGetDto) {
+    const response = await this.communityService.getPostList(postsGetDto);
 
     return response;
   }

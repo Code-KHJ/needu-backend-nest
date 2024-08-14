@@ -2,11 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Perspective from 'perspective-api-client';
 import { CommunityTopic } from 'src/entity/community-topic.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { PostCreateDto } from './dto/post-create.dto';
 import { CommunityPost } from 'src/entity/community-post.entity';
 import { PostUpdateDto } from './dto/post-update.dto';
-import { PostGetResponseDto } from './dto/post-get.dto';
+import { PostGetResponseDto, PostsGetDto } from './dto/post-get.dto';
 import { PostLikeDto } from './dto/post-like.dto';
 import { CommunityPostLike } from 'src/entity/community-post-like.entity';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
@@ -74,6 +74,52 @@ export class CommunityService {
     }
     const result = new PostGetResponseDto(post);
     return result;
+  }
+
+  async getPostList(postsGetDto: PostsGetDto) {
+    let { type, topic, search, order, page } = postsGetDto;
+    const take = 10;
+    page = page ?? 1;
+    const skip = (page - 1) * take;
+
+    const typeQuery = Number(type) > 0 ? Number(type) : 0;
+    const topicQuery = Number(topic) > 0 ? Number(topic) : 0;
+
+    const orderOptions: Record<string, string> = {
+      recent: 'p.created_at',
+      likes: 'like_cnt',
+      comments: 'comment_cnt',
+      views: 'p.view',
+    };
+    const orderQuery = orderOptions[order] || 'p.created_at';
+
+    search = search ?? '';
+
+    const queryBuilder = await this.communityPostRepository
+      .createQueryBuilder('p')
+      .leftJoin('p.user', 'u')
+      .leftJoin('p.topic', 't')
+      .leftJoin('p.likes', 'l')
+      .leftJoin('p.comments', 'c')
+      .where('p.is_del = false');
+    if (typeQuery > 0) {
+      queryBuilder.where('t.type.id = :typeId', { typeId: typeQuery });
+    }
+    if (topicQuery > 0) {
+      queryBuilder.where('p.topic_id = :topicId', { topicId: topicQuery });
+    }
+    queryBuilder
+      // .addSelect(['l.id AS like_cnt'])
+      .andWhere('(p.title LIKE :search OR p.content LIKE :search OR u.nickname LIKE :search)', { search: `%${search}%` })
+      // .groupBy('p.id')
+      .orderBy(orderQuery, 'DESC')
+      .addOrderBy('p.created_at', 'DESC')
+      .take(take)
+      .skip(skip);
+
+    const postList = await queryBuilder.getRawMany();
+
+    console.log(postList);
   }
 
   async updateView(postId: number) {
