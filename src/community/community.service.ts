@@ -6,7 +6,7 @@ import { Like, Repository } from 'typeorm';
 import { PostCreateDto } from './dto/post-create.dto';
 import { CommunityPost } from 'src/entity/community-post.entity';
 import { PostUpdateDto } from './dto/post-update.dto';
-import { PostGetResponseDto, PostsGetDto } from './dto/post-get.dto';
+import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post-get.dto';
 import { PostLikeDto } from './dto/post-like.dto';
 import { CommunityPostLike } from 'src/entity/community-post-like.entity';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
@@ -16,6 +16,7 @@ import { CommentLikeDto } from './dto/comment-like.dto';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
+import { title } from 'process';
 
 @Injectable()
 export class CommunityService {
@@ -97,10 +98,12 @@ export class CommunityService {
 
     const queryBuilder = await this.communityPostRepository
       .createQueryBuilder('p')
-      .leftJoin('p.user', 'u')
-      .leftJoin('p.topic', 't')
+      .leftJoinAndSelect('p.user', 'u')
+      .leftJoinAndSelect('p.topic', 't')
+      .leftJoinAndSelect('p.comment_accepted', 'a')
       .leftJoin('p.likes', 'l')
       .leftJoin('p.comments', 'c')
+      .addSelect(['COUNT(DISTINCT l.id) AS like_cnt', 'COUNT(DISTINCT CASE WHEN c.is_del = false THEN c.id END) AS comment_cnt'])
       .where('p.is_del = false');
     if (typeQuery > 0) {
       queryBuilder.where('t.type.id = :typeId', { typeId: typeQuery });
@@ -108,18 +111,20 @@ export class CommunityService {
     if (topicQuery > 0) {
       queryBuilder.where('p.topic_id = :topicId', { topicId: topicQuery });
     }
-    queryBuilder
-      // .addSelect(['l.id AS like_cnt'])
-      .andWhere('(p.title LIKE :search OR p.content LIKE :search OR u.nickname LIKE :search)', { search: `%${search}%` })
-      // .groupBy('p.id')
-      .orderBy(orderQuery, 'DESC')
-      .addOrderBy('p.created_at', 'DESC')
-      .take(take)
-      .skip(skip);
+    queryBuilder.andWhere('(p.title LIKE :search OR p.content LIKE :search OR u.nickname LIKE :search)', { search: `%${search}%` }).groupBy('p.id');
 
-    const postList = await queryBuilder.getRawMany();
+    const postList = await queryBuilder.orderBy(orderQuery, 'DESC').addOrderBy('p.created_at', 'DESC').take(take).skip(skip).getRawMany();
 
-    console.log(postList);
+    const totalCount = await queryBuilder.getRawMany();
+    const totalPages = Math.ceil(totalCount.length / take);
+
+    const result: PostsGetResponseDto[] = [];
+    for (const post of postList) {
+      const postItem = new PostsGetResponseDto(post);
+      result.push(postItem);
+    }
+
+    return { result, totalPages };
   }
 
   async updateView(postId: number) {

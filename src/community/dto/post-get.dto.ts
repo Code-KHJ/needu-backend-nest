@@ -72,3 +72,46 @@ export class PostsGetDto {
   @Min(1)
   page: number;
 }
+
+export class PostsGetResponseDto {
+  id: number;
+  title: string;
+  content: string;
+  created_at: Date;
+  blind: number;
+  view: number;
+  postType: string;
+  topicType: string;
+  commentAccepted: number | null;
+  writer: {
+    id: number;
+    nickname: string;
+    // @IsString()
+    // user_profile: string; url??
+
+    // @IsString()
+    // user_level: string;
+  };
+  like_cnt: number;
+  comment_cnt: number;
+
+  constructor(post) {
+    this.id = post.p_id;
+    this.title = post.p_title;
+    this.content = post.p_content;
+    this.created_at = post.p_created_at;
+    this.blind = post.p_blind;
+    this.view = post.p_view;
+    this.postType = post.t_type_id;
+    this.topicType = post.t_id;
+    this.commentAccepted = post.a_comment_id;
+    this.like_cnt = post.like_cnt;
+    this.comment_cnt = post.comment_cnt;
+    this.writer = {
+      id: post.u_id,
+      nickname: post.u_nickname,
+      // userProfile: post.user.userProfile, // assuming this property exists in the user object
+      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+    };
+  }
+}
