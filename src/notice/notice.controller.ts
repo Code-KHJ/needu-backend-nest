@@ -42,6 +42,18 @@ export class NoticeController {
     return response;
   }
 
+  @Public()
+  @Get('/list/public')
+  @ApiOperation({ summary: '공지사항 목록 조회(공개용)' })
+  @ApiResponse({
+    status: 200,
+    description: '공지사항 목록 조회(공개용) 완료',
+  })
+  async getPublicNotice() {
+    const response = await this.noticeService.getPublicNotice();
+    return response;
+  }
+
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
   @Get('/edit/:id')

@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { NoticeCreateDto } from './dto/notice-create.dto';
 import { User } from 'src/entity/user.entity';
 import { NoticeUpdateDto } from './dto/notice-update.dto';
-import { NoticeGetResponseDto } from './dto/notice-get.dto';
+import { NoticeGetResponseDto, PublicNoticeGetResponseDto } from './dto/notice-get.dto';
 import { NoticeLikeDto } from './dto/notice-like.dto';
 import { NoticeLike } from 'src/entity/notice-like.entity';
 import { NoticeComment } from 'src/entity/notice-comment.entity';
@@ -67,6 +67,17 @@ export class NoticeService {
       return { msg: 'is_del' };
     }
     const result = new NoticeGetResponseDto(notice);
+    return result;
+  }
+
+  async getPublicNotice() {
+    const notice = await this.noticeRepository.find({
+      where: { is_show: true },
+      relations: ['user', 'likes', 'comments'],
+      order: { sort_order: 'ASC', created_at: 'DESC' },
+    });
+
+    const result = notice.map(item => new PublicNoticeGetResponseDto(item));
     return result;
   }
 

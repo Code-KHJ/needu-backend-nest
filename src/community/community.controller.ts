@@ -29,7 +29,7 @@ export class CommunityController {
   }
 
   @Public()
-  @Get('/post')
+  @Get('/post/list')
   @ApiOperation({ summary: '게시글 목록 조회' })
   @ApiResponse({
     status: 200,
