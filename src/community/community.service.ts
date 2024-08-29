@@ -16,7 +16,6 @@ import { CommentLikeDto } from './dto/comment-like.dto';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
-import { title } from 'process';
 
 @Injectable()
 export class CommunityService {
@@ -105,11 +104,12 @@ export class CommunityService {
       .leftJoin('p.comments', 'c')
       .addSelect(['COUNT(DISTINCT l.id) AS like_cnt', 'COUNT(DISTINCT CASE WHEN c.is_del = false THEN c.id END) AS comment_cnt'])
       .where('p.is_del = false');
+
     if (typeQuery > 0) {
-      queryBuilder.where('t.type.id = :typeId', { typeId: typeQuery });
+      queryBuilder.andWhere('t.type.id = :typeId', { typeId: typeQuery });
     }
     if (topicQuery > 0) {
-      queryBuilder.where('p.topic_id = :topicId', { topicId: topicQuery });
+      queryBuilder.andWhere('p.topic_id = :topicId', { topicId: topicQuery });
     }
     queryBuilder.andWhere('(p.title LIKE :search OR p.content LIKE :search OR u.nickname LIKE :search)', { search: `%${search}%` }).groupBy('p.id');
 
