@@ -16,6 +16,8 @@ import { CommentLikeDto } from './dto/comment-like.dto';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
+import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
+import { User } from 'src/entity/user.entity';
 
 @Injectable()
 export class CommunityService {
@@ -32,6 +34,10 @@ export class CommunityService {
     private readonly communityCommentLikeRepository: Repository<CommunityCommentLike>,
     @InjectRepository(CommunityCommentAccepted)
     private readonly communityCommentAcceptedRepository: Repository<CommunityCommentAccepted>,
+    @InjectRepository(CommunityWeeklyBest)
+    private readonly communityWeeklyBestRepository: Repository<CommunityWeeklyBest>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -417,6 +423,50 @@ export class CommunityService {
     await this.communityCommentAcceptedRepository.remove(accepted);
     return { success: true, msg: '채택 취소' };
   }
+
+  async createWeekly(userId: number, postId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user.authority !== 100) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    const post = await this.communityPostRepository.findOne({ where: { id: postId } });
+    if (!post.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    const dto = {
+      post: post,
+      user: user,
+    };
+
+    const weekly = await this.communityWeeklyBestRepository.create(dto);
+    const savedWeekly = await this.communityWeeklyBestRepository.save(weekly);
+
+    console.log(weekly);
+    return weekly;
+  }
+
+  async deleteWeekly(userId: number, id: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user.authority !== 100) {
+      throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    }
+
+    const weekly = await this.communityWeeklyBestRepository.findOne({ where: { id: id } });
+    if (!weekly.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    weekly.is_del = true;
+    weekly.updated_at = new Date();
+
+    const savedWeekly = await this.communityWeeklyBestRepository.save(weekly);
+
+    console.log(savedWeekly);
+    return savedWeekly;
+  }
+
+  async getWeeklyList() {}
 
   // 공통
   async getTopic(type_id: number) {

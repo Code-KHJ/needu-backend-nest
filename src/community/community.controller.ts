@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, Delete, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommunityService } from './community.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -10,6 +10,9 @@ import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommentLikeDto } from './dto/comment-like.dto';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { PostsGetDto } from './dto/post-get.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { RoleType } from 'src/common/role-type';
+import { Roles } from 'src/common/decorators/role.decorator';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -197,7 +200,47 @@ export class CommunityController {
 
   @Public()
   @Get('/topic/:type')
+  @ApiOperation({ summary: 'Topic List 가져오기' })
+  @ApiResponse({
+    status: 200,
+    description: 'Topic List 가져오기 성공',
+  })
   async getTopic(@Param('type') type_id: number) {
     return await this.communityService.getTopic(type_id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
+  @Post('/weekly')
+  @ApiOperation({ summary: '주간베스트 채택' })
+  @ApiResponse({
+    status: 201,
+    description: '주간베스트 채택 완료',
+  })
+  async createWeekly(@GetCurrentUser('id') userId: number, @Body() postId: number) {
+    const response = await this.communityService.createWeekly(userId, postId);
+    return response;
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
+  @Delete('/weekly')
+  @ApiOperation({ summary: '주간베스트 채택 취소' })
+  @ApiResponse({
+    status: 201,
+    description: '주간베스트 채택 취소 완료',
+  })
+  async deleteWeekly(@GetCurrentUser('id') userId: number, @Body() id: number) {
+    const response = await this.communityService.deleteWeekly(userId, id);
+    return response;
+  }
+
+  @Public()
+  @Get('/weekly/list')
+  @ApiOperation({ summary: '주간베스트 조회' })
+  @ApiResponse({ status: 200, description: '주간베스트 조회 성공' })
+  async getWeeklyList() {
+    const response = await this.communityService.getWeeklyList();
+    return response;
   }
 }

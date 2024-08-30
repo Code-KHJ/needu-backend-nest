@@ -12,6 +12,8 @@ import { CommunityTopic } from 'src/entity/community-topic.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { multerOptionsFactory } from 'src/multer.options.factory';
 import { ConfigModule } from '@nestjs/config';
+import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
+import { User } from 'src/entity/user.entity';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { ConfigModule } from '@nestjs/config';
       CommunityCommentAccepted,
       CommunityType,
       CommunityTopic,
+      CommunityWeeklyBest,
+      User,
     ]),
   ],
   controllers: [CommunityController],
