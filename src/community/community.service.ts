@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Perspective from 'perspective-api-client';
 import { CommunityTopic } from 'src/entity/community-topic.entity';
-import { Like, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { PostCreateDto } from './dto/post-create.dto';
 import { CommunityPost } from 'src/entity/community-post.entity';
 import { PostUpdateDto } from './dto/post-update.dto';
@@ -18,6 +18,7 @@ import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
 import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
 import { User } from 'src/entity/user.entity';
+import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
 
 @Injectable()
 export class CommunityService {
@@ -429,7 +430,6 @@ export class CommunityService {
     if (user.authority !== 100) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
-
     const post = await this.communityPostRepository.findOne({ where: { id: postId } });
     if (!post.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -438,12 +438,15 @@ export class CommunityService {
       post: post,
       user: user,
     };
+    const duplicWeekly = await this.communityWeeklyBestRepository.findOne({ where: { post: { id: postId } } });
+    if (duplicWeekly) {
+      return { msg: '중복채택' };
+    }
 
     const weekly = await this.communityWeeklyBestRepository.create(dto);
     const savedWeekly = await this.communityWeeklyBestRepository.save(weekly);
 
-    console.log(weekly);
-    return weekly;
+    return savedWeekly;
   }
 
   async deleteWeekly(userId: number, id: number) {
@@ -462,11 +465,22 @@ export class CommunityService {
 
     const savedWeekly = await this.communityWeeklyBestRepository.save(weekly);
 
-    console.log(savedWeekly);
     return savedWeekly;
   }
 
-  async getWeeklyList() {}
+  async getWeeklyList() {
+    const weeklyList = await this.communityWeeklyBestRepository.find({
+      where: { is_del: false },
+      order: { created_at: 'DESC' },
+      relations: ['post'],
+    });
+    const postIds = weeklyList.map(item => item.post.id);
+
+    const postList = await this.communityPostRepository.find({ where: { id: In(postIds) }, relations: ['user', 'likes', 'comments', 'topic'] });
+
+    const result = postList.map(post => new WeeklyGetResponseDto(post));
+    return result;
+  }
 
   // 공통
   async getTopic(type_id: number) {

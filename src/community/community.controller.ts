@@ -217,8 +217,8 @@ export class CommunityController {
     status: 201,
     description: '주간베스트 채택 완료',
   })
-  async createWeekly(@GetCurrentUser('id') userId: number, @Body() postId: number) {
-    const response = await this.communityService.createWeekly(userId, postId);
+  async createWeekly(@GetCurrentUser('id') userId: number, @Body() body: { postId: number }) {
+    const response = await this.communityService.createWeekly(userId, body.postId);
     return response;
   }
 
