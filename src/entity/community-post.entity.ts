@@ -6,6 +6,7 @@ import { BlindType } from './blind-type.entity';
 import { CommunityPostLike } from './community-post-like.entity';
 import { CommunityComment } from './community-comment.entity';
 import { CommunityCommentAccepted } from './community_comment_accepted.entity';
+import { CommunityWeeklyBest } from './community-weekly-best.entity';
 
 @Entity({ name: 'community_post' })
 export class CommunityPost {
@@ -70,4 +71,7 @@ export class CommunityPost {
 
   @OneToOne(() => CommunityCommentAccepted, comment_accepted => comment_accepted.post)
   comment_accepted: CommunityCommentAccepted;
+
+  @OneToOne(() => CommunityWeeklyBest, wb => wb.post)
+  wb: CommunityWeeklyBest;
 }

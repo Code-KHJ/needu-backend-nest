@@ -94,6 +94,7 @@ export class PostsGetResponseDto {
   };
   like_cnt: number;
   comment_cnt: number;
+  wbAccepted: boolean;
 
   constructor(post) {
     this.id = post.p_id;
@@ -107,6 +108,7 @@ export class PostsGetResponseDto {
     this.commentAccepted = post.a_comment_id;
     this.like_cnt = post.like_cnt;
     this.comment_cnt = post.comment_cnt;
+    this.wbAccepted = post.wb ? true : false;
     this.writer = {
       id: post.u_id,
       nickname: post.u_nickname,

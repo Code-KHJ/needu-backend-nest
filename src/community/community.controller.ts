@@ -224,13 +224,13 @@ export class CommunityController {
 
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
-  @Delete('/weekly')
+  @Delete('/weekly/:id')
   @ApiOperation({ summary: '주간베스트 채택 취소' })
   @ApiResponse({
     status: 201,
     description: '주간베스트 채택 취소 완료',
   })
-  async deleteWeekly(@GetCurrentUser('id') userId: number, @Body() id: number) {
+  async deleteWeekly(@GetCurrentUser('id') userId: number, @Param('id') id: number) {
     const response = await this.communityService.deleteWeekly(userId, id);
     return response;
   }

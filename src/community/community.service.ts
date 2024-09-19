@@ -109,7 +109,12 @@ export class CommunityService {
       .leftJoinAndSelect('p.comment_accepted', 'a')
       .leftJoin('p.likes', 'l')
       .leftJoin('p.comments', 'c')
-      .addSelect(['COUNT(DISTINCT l.id) AS like_cnt', 'COUNT(DISTINCT CASE WHEN c.is_del = false THEN c.id END) AS comment_cnt'])
+      .leftJoin('p.wb', 'wb')
+      .addSelect([
+        'COUNT(DISTINCT l.id) AS like_cnt',
+        'COUNT(DISTINCT CASE WHEN c.is_del = false THEN c.id END) AS comment_cnt',
+        'CASE WHEN wb.is_del = false THEN wb.id END AS wb',
+      ])
       .where('p.is_del = false');
 
     if (typeQuery > 0) {
@@ -439,8 +444,15 @@ export class CommunityService {
       user: user,
     };
     const duplicWeekly = await this.communityWeeklyBestRepository.findOne({ where: { post: { id: postId } } });
-    if (duplicWeekly) {
+    if (duplicWeekly && duplicWeekly.is_del === false) {
       return { msg: '중복채택' };
+    }
+    if (duplicWeekly && duplicWeekly.is_del === true) {
+      duplicWeekly.is_del = false;
+      duplicWeekly.updated_at = new Date();
+      const savedWeekly = await this.communityWeeklyBestRepository.save(duplicWeekly);
+
+      return savedWeekly;
     }
 
     const weekly = await this.communityWeeklyBestRepository.create(dto);
@@ -449,13 +461,13 @@ export class CommunityService {
     return savedWeekly;
   }
 
-  async deleteWeekly(userId: number, id: number) {
+  async deleteWeekly(userId: number, postId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user.authority !== 100) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
 
-    const weekly = await this.communityWeeklyBestRepository.findOne({ where: { id: id } });
+    const weekly = await this.communityWeeklyBestRepository.findOne({ where: { post: { id: postId } } });
     if (!weekly.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
