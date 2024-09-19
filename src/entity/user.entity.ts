@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsNumber, IsString, Length, Matches, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Review } from './review.entity';
 import { ReviewTraning } from './review-training.entity';
@@ -13,15 +13,17 @@ export class User {
   @Length(1, 40)
   user_id: string;
 
-  @Column()
+  @Column({ nullable: true })
+  @IsOptional()
   @IsString()
   @Length(8, 16)
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,16}$/)
-  password: string;
+  password: string | null;
 
-  @Column()
+  @Column({ nullable: true })
+  @IsOptional()
   @Matches(/^(010)[0-9]{7,8}$/)
-  phonenumber: string;
+  phonenumber: string | null;
 
   @Column({ unique: true })
   @IsString()
@@ -50,6 +52,7 @@ export class User {
   marketing_SMS: boolean;
 
   @Column({ nullable: true })
+  @IsOptional()
   @IsString()
   info_period: string | null;
 
@@ -63,12 +66,14 @@ export class User {
   login_date: Date;
 
   @Column({ nullable: true })
+  @IsOptional()
   @IsString()
-  google: boolean;
+  google: boolean | null;
 
   @Column({ nullable: true })
+  @IsOptional()
   @IsString()
-  kakao: boolean;
+  kakao: boolean | null;
 
   @OneToMany(() => Review, review => review.user)
   reviews: Review[];

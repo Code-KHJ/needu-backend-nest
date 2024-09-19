@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class KakaoLoginDto {
   @IsString()
   @IsNotEmpty()
-  user_id: string;
+  id: string;
 
   @IsString()
   nickname: string;
@@ -11,4 +11,7 @@ export class KakaoLoginDto {
   @IsString()
   @Matches(/^(010)[0-9]{7,8}$/)
   phonenumber: string;
+
+  @IsBoolean()
+  marketing: boolean;
 }

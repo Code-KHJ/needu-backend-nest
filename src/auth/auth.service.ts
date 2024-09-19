@@ -58,12 +58,12 @@ export class AuthService {
   }
 
   async googleLogin(googleLoginDto: GoogleLoginDto) {
-    const { user_id, nickname } = googleLoginDto;
-    let user = await this.userRepository.findOne({ where: { user_id: user_id } });
+    const { id, nickname } = googleLoginDto;
+    let user = await this.userRepository.findOne({ where: { user_id: id } });
 
     if (!user) {
       user = this.userRepository.create({
-        user_id: user_id,
+        user_id: id,
         password: null,
         phonenumber: null,
         nickname: nickname,
@@ -79,7 +79,7 @@ export class AuthService {
       user.google = true;
     }
     const payload: JwtPayloadDto = {
-      user_id: user_id,
+      user_id: id,
       nickname: nickname,
     };
 
@@ -100,19 +100,19 @@ export class AuthService {
   }
 
   async kakaoLogin(kakaoLoginDto: KakaoLoginDto) {
-    const { user_id, nickname, phonenumber } = kakaoLoginDto;
-    let user = await this.userRepository.findOne({ where: { user_id: user_id } });
+    const { id, nickname, phonenumber, marketing } = kakaoLoginDto;
 
+    let user = await this.userRepository.findOne({ where: { user_id: id } });
     if (!user) {
       user = this.userRepository.create({
-        user_id: user_id,
+        user_id: id,
         password: null,
         phonenumber: phonenumber,
         nickname: nickname,
         policy: true,
         personal_info: true,
-        marketing_email: true,
-        marketing_SMS: true,
+        marketing_email: marketing,
+        marketing_SMS: marketing,
         kakao: true,
       });
       await this.userRepository.save(user);
@@ -121,7 +121,7 @@ export class AuthService {
       user.kakao = true;
     }
     const payload: JwtPayloadDto = {
-      user_id: user_id,
+      user_id: id,
       nickname: nickname,
     };
 
