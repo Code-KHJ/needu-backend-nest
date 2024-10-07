@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ReviewService } from './review.service';
 import { GetCurrentUser, Public } from 'src/common/decorators';
-import { WorkingCreateDto } from './dto/review-create.dto';
 import { CorpService } from 'src/corp/corp.service';
-import { TrainingCreateDto } from './dto/review-training-create.dto';
-import { LikeDto } from './dto/review-like.dto';
+import { WorkingCreateDto } from './dto/review-create.dto';
 import { DeleteReviewDto } from './dto/review-delete.dto';
+import { LikeDto } from './dto/review-like.dto';
+import { TrainingCreateDto } from './dto/review-training-create.dto';
+import { ReviewService } from './review.service';
 
 @ApiTags('Review')
 @Controller('/api/review')
@@ -32,6 +32,18 @@ export class ReviewController {
     if (response.review.id == null || response.career.id == null) {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
+    return response;
+  }
+
+  @Get('/working/user')
+  @ApiOperation({ summary: '전현직자 리뷰 조회 by 유저' })
+  @ApiResponse({
+    status: 200,
+    description: '전현직자 리뷰 조회',
+  })
+  async getWorkingReviewsByUser(@GetCurrentUser('user_id') userId: string) {
+    const response = await this.reviewService.findWorkingReviewsByUser(userId);
+
     return response;
   }
 
@@ -111,6 +123,18 @@ export class ReviewController {
     if (!response.review.id) {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
+    return response;
+  }
+
+  @Get('/training/user')
+  @ApiOperation({ summary: '실습 리뷰 조회 by 유저' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 조회',
+  })
+  async getTrainingReviewsByUser(@GetCurrentUser('user_id') userId: string) {
+    const response = await this.reviewService.findTrainingReviewsByUser(userId);
+
     return response;
   }
 

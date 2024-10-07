@@ -1,22 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
-import { Review } from '../entity/review.entity';
-import { Corp } from '../entity/corp.entity';
-import { Hashtag } from '../entity/hashtag.entity';
-import { WorkingCreateDto } from './dto/review-create.dto';
 import { CorpService } from 'src/corp/corp.service';
-import { UserService } from 'src/user/user.service';
-import { CareerCreateDto } from 'src/user/dto/career-create.dto';
-import { TrainingCreateDto } from './dto/review-training-create.dto';
-import { ReviewTraning } from 'src/entity/review-training.entity';
-import { LikeDto } from './dto/review-like.dto';
-import { DeleteReviewDto } from './dto/review-delete.dto';
 import { ReviewLike } from 'src/entity/review-like.entity';
 import { ReviewTrainingLike } from 'src/entity/review-training-like.entity';
+import { ReviewTraning } from 'src/entity/review-training.entity';
 import { UserCareer } from 'src/entity/user-career.entity';
-import { User } from 'src/entity/user.entity';
+import { CareerCreateDto } from 'src/user/dto/career-create.dto';
+import { UserService } from 'src/user/user.service';
+import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
+import { Review } from '../entity/review.entity';
+import { WorkingCreateDto } from './dto/review-create.dto';
+import { DeleteReviewDto } from './dto/review-delete.dto';
 import { ReviewsGetResponseDto } from './dto/review-get-response.dto';
+import { LikeDto } from './dto/review-like.dto';
+import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewsTrainingGetResponseDto } from './dto/review-training-get-response.dto';
 
 @Injectable()
@@ -90,6 +87,23 @@ export class ReviewService {
       where: [
         { corp: { corp_name: corpname }, is_del: false },
         { corp: { corp_name: corpname }, is_del: IsNull() },
+      ],
+      relations: ['userCareer', 'reviewLikes', 'user'],
+      order: {
+        id: 'DESC',
+      },
+    });
+    const reviewsDto = reviews.map(review => new ReviewsGetResponseDto(review));
+
+    return reviewsDto;
+  }
+
+  // 유저 전현직 리뷰 조회
+  async findWorkingReviewsByUser(userId: string) {
+    const reviews = await this.reviewRepository.find({
+      where: [
+        { user_id: userId, is_del: false },
+        { user_id: userId, is_del: IsNull() },
       ],
       relations: ['userCareer', 'reviewLikes', 'user'],
       order: {
@@ -262,6 +276,23 @@ export class ReviewService {
       where: [
         { corp: { corp_name: corpname }, is_del: false },
         { corp: { corp_name: corpname }, is_del: IsNull() },
+      ],
+      relations: ['reviewTrainingLikes', 'user'],
+      order: {
+        id: 'DESC',
+      },
+    });
+    const reviewsDto = reviews.map(review => new ReviewsTrainingGetResponseDto(review));
+
+    return reviewsDto;
+  }
+
+  // 유저 전현직 리뷰 조회
+  async findTrainingReviewsByUser(userId: string) {
+    const reviews = await this.reviewTrainingRepository.find({
+      where: [
+        { user_id: userId, is_del: false },
+        { user_id: userId, is_del: IsNull() },
       ],
       relations: ['reviewTrainingLikes', 'user'],
       order: {

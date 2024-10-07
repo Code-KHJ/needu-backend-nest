@@ -1,23 +1,23 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Perspective from 'perspective-api-client';
-import { CommunityTopic } from 'src/entity/community-topic.entity';
-import { In, Repository } from 'typeorm';
-import { PostCreateDto } from './dto/post-create.dto';
-import { CommunityPost } from 'src/entity/community-post.entity';
-import { PostUpdateDto } from './dto/post-update.dto';
-import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post-get.dto';
-import { PostLikeDto } from './dto/post-like.dto';
-import { CommunityPostLike } from 'src/entity/community-post-like.entity';
-import { CommunityCommentCreateDto } from './dto/comment-create.dto';
+import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 import { CommunityComment } from 'src/entity/community-comment.entity';
+import { CommunityPostLike } from 'src/entity/community-post-like.entity';
+import { CommunityPost } from 'src/entity/community-post.entity';
+import { CommunityTopic } from 'src/entity/community-topic.entity';
+import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
+import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
+import { User } from 'src/entity/user.entity';
+import { In, IsNull, Repository } from 'typeorm';
+import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
+import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommentGetResponseDto } from './dto/comment-get.dto';
 import { CommentLikeDto } from './dto/comment-like.dto';
-import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
-import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
-import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
-import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
-import { User } from 'src/entity/user.entity';
+import { PostCreateDto } from './dto/post-create.dto';
+import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post-get.dto';
+import { PostLikeDto } from './dto/post-like.dto';
+import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
 
 @Injectable()
@@ -137,6 +137,23 @@ export class CommunityService {
     }
 
     return { result, totalPages };
+  }
+
+  async getPostListByUser(userId: number) {
+    const posts = await this.communityPostRepository.find({
+      where: [
+        { user_id: userId, is_del: false },
+        { user_id: userId, is_del: IsNull() },
+      ],
+      relations: ['user', 'topic', 'likes', 'comments'],
+      order: {
+        id: 'DESC',
+      },
+    });
+
+    const postList = posts.map(post => new PostGetResponseDto(post));
+
+    return postList;
   }
 
   async updateView(postId: number) {

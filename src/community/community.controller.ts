@@ -1,18 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors, Delete, Query, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CommunityService } from './community.service';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetCurrentUser, Public } from 'src/common/decorators';
-import { PostCreateDto } from './dto/post-create.dto';
-import { PostUpdateDto } from './dto/post-update.dto';
-import { PostLikeDto } from './dto/post-like.dto';
-import { CommunityCommentCreateDto } from './dto/comment-create.dto';
-import { CommentLikeDto } from './dto/comment-like.dto';
-import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
-import { PostsGetDto } from './dto/post-get.dto';
+import { Roles } from 'src/common/decorators/role.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { RoleType } from 'src/common/role-type';
-import { Roles } from 'src/common/decorators/role.decorator';
+import { CommunityService } from './community.service';
+import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
+import { CommunityCommentCreateDto } from './dto/comment-create.dto';
+import { CommentLikeDto } from './dto/comment-like.dto';
+import { PostCreateDto } from './dto/post-create.dto';
+import { PostsGetDto } from './dto/post-get.dto';
+import { PostLikeDto } from './dto/post-like.dto';
+import { PostUpdateDto } from './dto/post-update.dto';
 
 @ApiTags('Community')
 @Controller('/api/community')
@@ -40,6 +40,18 @@ export class CommunityController {
   })
   async getPostList(@Query() postsGetDto: PostsGetDto) {
     const response = await this.communityService.getPostList(postsGetDto);
+
+    return response;
+  }
+
+  @Get('/post/list/user')
+  @ApiOperation({ summary: '게시글 목록 조회 by 유저' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 목록 조회 성공',
+  })
+  async getPostListByUser(@GetCurrentUser('id') userId: number) {
+    const response = await this.communityService.getPostListByUser(userId);
 
     return response;
   }
