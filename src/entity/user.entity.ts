@@ -75,6 +75,15 @@ export class User {
   @IsString()
   kakao: boolean | null;
 
+  @Column({ nullable: true })
+  @IsOptional()
+  @IsString()
+  profile_image: string | null;
+
+  @Column({ default: 0 })
+  @IsNumber()
+  activity_points: number;
+
   @OneToMany(() => Review, review => review.user)
   reviews: Review[];
 

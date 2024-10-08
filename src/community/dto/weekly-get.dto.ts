@@ -10,11 +10,8 @@ export class WeeklyGetResponseDto {
   writer: {
     id: number;
     nickname: string;
-    // @IsString()
-    // user_profile: string; url??
-
-    // @IsString()
-    // user_level: string;
+    profile_image: string | null;
+    activity_points: number;
   };
   like_cnt: number;
   comment_cnt: number;
@@ -33,8 +30,8 @@ export class WeeklyGetResponseDto {
     this.writer = {
       id: post.user.id,
       nickname: post.user.nickname,
-      // userProfile: post.user.userProfile, // assuming this property exists in the user object
-      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+      profile_image: post.user.profile_image,
+      activity_points: post.user.activity_points,
     };
   }
 }

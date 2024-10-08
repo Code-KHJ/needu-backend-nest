@@ -11,11 +11,8 @@ export class NoticeGetResponseDto {
   writer: {
     id: number;
     nickname: string;
-    // @IsString()
-    // user_profile: string; url??
-
-    // @IsString()
-    // user_level: string;
+    profile_image: string | null;
+    activity_points: number;
   };
   noticeLikes: NoticeLike[];
 
@@ -30,8 +27,8 @@ export class NoticeGetResponseDto {
     this.writer = {
       id: notice.user.id,
       nickname: notice.user.nickname,
-      // userProfile: post.user.userProfile, // assuming this property exists in the user object
-      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+      profile_image: notice.user.profile_image,
+      activity_points: notice.user.activity_points,
     };
   }
 }
@@ -45,11 +42,8 @@ export class PublicNoticeGetResponseDto {
   writer: {
     id: number;
     nickname: string;
-    // @IsString()
-    // user_profile: string; url??
-
-    // @IsString()
-    // user_level: string;
+    profile_image: string | null;
+    activity_points: number;
   };
   like_cnt: number;
   comment_cnt: number;
@@ -65,8 +59,8 @@ export class PublicNoticeGetResponseDto {
     this.writer = {
       id: notice.user.id,
       nickname: notice.user.nickname,
-      // userProfile: post.user.userProfile, // assuming this property exists in the user object
-      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+      profile_image: notice.user.profile_image,
+      activity_points: notice.user.activity_points,
     };
   }
 }

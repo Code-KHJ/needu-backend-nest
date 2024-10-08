@@ -11,11 +11,8 @@ export class NoticeCommentGetResponseDto {
   writer: {
     id: number;
     nickname: string;
-    // @IsString()
-    // user_profile: string; url??
-
-    // @IsString()
-    // user_level: string;
+    profile_image: string | null;
+    activity_points: number;
   };
   commentLikes: NoticeCommentLike[];
 
@@ -30,8 +27,8 @@ export class NoticeCommentGetResponseDto {
     this.writer = {
       id: comment.user.id,
       nickname: comment.user.nickname,
-      // userProfile: post.user.userProfile, // assuming this property exists in the user object
-      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+      profile_image: comment.user.profile_image,
+      activity_points: comment.user.activity_points,
     };
   }
 }

@@ -50,6 +50,7 @@ export class AuthService {
       user_id: user.user_id,
       nickname: user.nickname,
       authority: user.authority,
+      profile_image: user.profile_image,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };

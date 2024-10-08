@@ -18,11 +18,8 @@ export class PostGetResponseDto {
   writer: {
     id: number;
     nickname: string;
-    // @IsString()
-    // user_profile: string; url??
-
-    // @IsString()
-    // user_level: string;
+    profile_image: string | null;
+    activity_points: number;
   };
   postLikes: CommunityPostLike[];
   comment_cnt: number;
@@ -43,8 +40,8 @@ export class PostGetResponseDto {
     this.writer = {
       id: post.user.id,
       nickname: post.user.nickname,
-      // userProfile: post.user.userProfile, // assuming this property exists in the user object
-      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+      profile_image: post.user.profile_image,
+      activity_points: post.user.activity_points,
     };
   }
 }
@@ -86,11 +83,8 @@ export class PostsGetResponseDto {
   writer: {
     id: number;
     nickname: string;
-    // @IsString()
-    // user_profile: string; url??
-
-    // @IsString()
-    // user_level: string;
+    profile_image: string | null;
+    activity_points: number;
   };
   like_cnt: number;
   comment_cnt: number;
@@ -112,8 +106,8 @@ export class PostsGetResponseDto {
     this.writer = {
       id: post.u_id,
       nickname: post.u_nickname,
-      // userProfile: post.user.userProfile, // assuming this property exists in the user object
-      // userLevel: post.user.userLevel,     // assuming this property exists in the user object
+      profile_image: post.u_profile_image,
+      activity_points: post.u_activity_points,
     };
   }
 }

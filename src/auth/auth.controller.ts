@@ -20,10 +20,12 @@ export class AuthController {
     description: '로그인 성공',
   })
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const { id, user_id, nickname, authority, accessToken, refreshToken } = await this.authService.login(loginDto);
+    const { id, user_id, nickname, authority, profile_image, accessToken, refreshToken } = await this.authService.login(loginDto);
     this.setCookies(accessToken, refreshToken, res);
 
-    return res.status(HttpStatus.OK).json({ message: '로그인 성공', id: id, user_id: user_id, nickname: nickname, authority: authority });
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: '로그인 성공', id: id, user_id: user_id, nickname: nickname, authority: authority, profile_image: profile_image });
   }
 
   @Post('logout')
@@ -50,9 +52,12 @@ export class AuthController {
     @GetCurrentUser('user_id') userId: string,
     @GetCurrentUser('nickname') userNickname: string,
     @GetCurrentUser('authority') authority: string,
+    @GetCurrentUser('profile_image') profile_image: string,
     @Res() res: Response,
   ) {
-    return res.status(HttpStatus.OK).json({ message: '회원정보', id: id, user_id: userId, nickname: userNickname, authority: authority });
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: '회원정보', id: id, user_id: userId, nickname: userNickname, authority: authority, profile_image: profile_image });
   }
 
   @Public()
