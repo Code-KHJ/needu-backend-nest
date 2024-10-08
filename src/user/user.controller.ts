@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -7,6 +7,7 @@ import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { GetCurrentUser, Public } from '../common/decorators';
 import { CareerCreateDto } from './dto/career-create.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('User')
 @Controller('/api/user')
@@ -96,6 +97,31 @@ export class UserController {
     if (result) {
       return res.status(HttpStatus.OK).json({ message: '회원탈퇴 성공' });
     }
+  }
+
+  @UseInterceptors(FileInterceptor('image'))
+  @Post('/profile/image')
+  @ApiOperation({ summary: '이미지 업로드' })
+  @ApiResponse({
+    status: 201,
+    description: '이미지 업로드 성공',
+  })
+  async uploadImage(@GetCurrentUser('id') userId: number, @UploadedFile() file: Express.MulterS3.File) {
+    const response = await this.userService.uploadProfile(userId, file);
+
+    return response;
+  }
+
+  @Get('/profile')
+  @ApiOperation({ summary: '유저 프로필 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '유저 프로필 조회 성공',
+  })
+  async getUserInfo(@GetCurrentUser('id') userId: number) {
+    const response = await this.userService.getUserInfo(userId);
+
+    return response;
   }
 
   @Public()

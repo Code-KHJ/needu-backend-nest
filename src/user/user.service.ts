@@ -13,6 +13,7 @@ import axios from 'axios';
 import { CareerCreateDto } from './dto/career-create.dto';
 import { UserCareer } from 'src/entity/user-career.entity';
 import { CareerUpdateDto } from './dto/career-update.dto';
+import { UserInfoGetDto } from './dto/userinfo-get.dto';
 
 @Injectable()
 export class UserService {
@@ -212,5 +213,26 @@ export class UserService {
 
   async getCareer(review_no: number) {
     return this.careerRepository.findOne({ where: { review_no: review_no } });
+  }
+
+  async uploadProfile(userId: number, file: Express.MulterS3.File) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (user && file.location) {
+      user.profile_image = file.location;
+      await this.userRepository.save(user);
+    }
+
+    return { imageUrl: user.profile_image };
+  }
+
+  async getUserInfo(userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    const userInfo = new UserInfoGetDto(user);
+    return userInfo;
   }
 }
