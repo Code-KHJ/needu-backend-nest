@@ -9,6 +9,7 @@ import { CommunityTopic } from 'src/entity/community-topic.entity';
 import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
 import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
 import { User } from 'src/entity/user.entity';
+import { UtilService } from 'src/util/util.service';
 import { In, IsNull, Repository } from 'typeorm';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
@@ -39,6 +40,7 @@ export class CommunityService {
     private readonly communityWeeklyBestRepository: Repository<CommunityWeeklyBest>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly utilService: UtilService,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -63,7 +65,19 @@ export class CommunityService {
     if (!savedPost.id) {
       throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    const savedPostForAlert = await this.communityPostRepository.findOne({ where: { id: savedPost.id }, relations: ['user', 'topic'] });
 
+    const slackMsg = `
+=======신규 게시글=======
+글번호 : ${savedPostForAlert.id}
+작성자 : ${savedPostForAlert.user.nickname}
+토픽 : ${savedPostForAlert.topic.topic}
+제목 : ${savedPostForAlert.title}
+본문 : ${savedPostForAlert.content}
+링크 : http://43.203.214.137/community/${savedPostForAlert.topic.type.id === 1 ? 'free' : 'question'}/${savedPost.id}
+`;
+
+    this.utilService.slackWebHook('alert', slackMsg);
     return { post: savedPost };
   }
 

@@ -13,6 +13,7 @@ import { AtGuard } from './common/guards';
 import { SharedModule } from './shared/shared.module';
 import { CommunityModule } from './community/community.module';
 import { NoticeModule } from './notice/notice.module';
+import { UtilModule } from './util/util.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { NoticeModule } from './notice/notice.module';
     SharedModule,
     CommunityModule,
     NoticeModule,
+    UtilModule,
   ],
   controllers: [AppController],
   providers: [

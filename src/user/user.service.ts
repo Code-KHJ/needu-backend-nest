@@ -1,18 +1,17 @@
-import { Response } from 'express';
-import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entity/user.entity';
-import { Repository } from 'typeorm';
-import bcrypt from 'bcrypt';
-import { UserDuplicDto } from './dto/user-duplic.dto';
-import nodemailer from 'nodemailer';
-import { UserCreateDto } from './dto/user-create.dto';
-import { UserCreateResponseDto } from './dto/user-create-response.dto';
-import { UserDeleteeDto } from './dto/user-delete.dto';
 import axios from 'axios';
-import { CareerCreateDto } from './dto/career-create.dto';
+import bcrypt from 'bcrypt';
+import nodemailer from 'nodemailer';
 import { UserCareer } from 'src/entity/user-career.entity';
-import { CareerUpdateDto } from './dto/career-update.dto';
+import { UtilService } from 'src/util/util.service';
+import { Repository } from 'typeorm';
+import { User } from '../entity/user.entity';
+import { CareerCreateDto } from './dto/career-create.dto';
+import { UserCreateResponseDto } from './dto/user-create-response.dto';
+import { UserCreateDto } from './dto/user-create.dto';
+import { UserDeleteeDto } from './dto/user-delete.dto';
+import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
 
 @Injectable()
@@ -22,6 +21,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserCareer)
     private readonly careerRepository: Repository<UserCareer>,
+
+    private readonly utilService: UtilService,
   ) {}
 
   async create(userCreateDto: UserCreateDto): Promise<UserCreateResponseDto> {
@@ -48,8 +49,16 @@ export class UserService {
       marketing_email: userCreateDto.marketing_email,
       marketing_SMS: userCreateDto.marketing_SMS,
     });
+
+    const slackMsg = `
+=======회원가입=======
+아이디 : ${user.user_id}
+닉네임 : ${user.nickname}
+회원가입하셨습니다.
+`;
     try {
       await this.userRepository.save(user);
+      this.utilService.slackWebHook('alert', slackMsg);
       return new UserCreateResponseDto(user);
     } catch (error) {
       console.error(error);
@@ -118,17 +127,16 @@ export class UserService {
     let target = phone.phone;
     let authNum = Math.random().toString().substring(2, 8);
     let content = `[Needu] 인증번호는 ${authNum}입니다.`;
-    console.log(authNum);
     let payload = {
-      tas_id: 'needu.sw@gmail.com',
+      tas_id: process.env.TASON_ID,
       send_type: 'LM',
-      auth_key: 'F1TAQB-KJ9NK5-M02H7X-1BLKWV_856',
+      auth_key: process.env.TASON_API_KEY,
       data: [
         {
           user_name: 'user',
           user_email: target,
           map_content: content,
-          sender: '07079544468',
+          sender: process.env.TASON_SENDER,
           sender_name: 'Needu',
           subject: '니쥬 인증번호',
         },

@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
-import { UserService } from './user.service';
-import { UserController } from './user.controller';
+import { ConfigModule } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../entity/user.entity';
-import { RedisModule } from '../redis/redis.module';
 import { Axios } from 'axios';
 import { UserCareer } from 'src/entity/user-career.entity';
-import { MulterModule } from '@nestjs/platform-express';
 import { multerOptionsFactory } from 'src/multer.options.factory';
-import { ConfigModule } from '@nestjs/config';
+import { UtilService } from 'src/util/util.service';
+import { User } from '../entity/user.entity';
+import { RedisModule } from '../redis/redis.module';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { ConfigModule } from '@nestjs/config';
     RedisModule,
     Axios,
   ],
-  providers: [UserService],
+  providers: [UserService, UtilService],
   controllers: [UserController],
 })
 export class UserModule {}

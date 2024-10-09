@@ -7,6 +7,7 @@ import { ReviewTraning } from 'src/entity/review-training.entity';
 import { UserCareer } from 'src/entity/user-career.entity';
 import { CareerCreateDto } from 'src/user/dto/career-create.dto';
 import { UserService } from 'src/user/user.service';
+import { UtilService } from 'src/util/util.service';
 import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
 import { Review } from '../entity/review.entity';
 import { WorkingCreateDto } from './dto/review-create.dto';
@@ -31,6 +32,7 @@ export class ReviewService {
     private readonly corpService: CorpService,
     private readonly userService: UserService,
     private readonly dataSource: DataSource,
+    private readonly utilService: UtilService,
   ) {}
 
   // 전현직 리뷰 생성
@@ -55,6 +57,15 @@ export class ReviewService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    const slackMsg = `
+=======신규 전현직 리뷰=======
+기관명 : ${workingCreateDto.corp_name}
+작성자 : ${workingCreateDto.user_id}
+별점 : ${total_score}
+한줄평 : ${workingCreateDto.highlight}
+장점 : ${workingCreateDto.pros}
+단점 : ${workingCreateDto.cons}
+`;
     try {
       const review = this.reviewRepository.create({ ...workingCreateDto, total_score: total_score });
       const savedReview = await queryRunner.manager.save(review);
@@ -71,6 +82,8 @@ export class ReviewService {
       const savedCareer = await queryRunner.manager.save(career);
 
       await queryRunner.commitTransaction();
+
+      this.utilService.slackWebHook('alert', slackMsg);
       return { review: savedReview, career: savedCareer };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -257,10 +270,22 @@ export class ReviewService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    const slackMsg = `
+=======신규 실습 리뷰=======
+기관명 : ${trainingCreateDto.corp_name}
+작성자 : ${trainingCreateDto.user_id}
+별점 : ${total_score}
+한줄평 : ${trainingCreateDto.highlight}
+장점 : ${trainingCreateDto.pros}
+단점 : ${trainingCreateDto.cons}
+`;
     try {
       const review = this.reviewTrainingRepository.create({ ...trainingCreateDto, total_score: total_score });
       const savedReview = await queryRunner.manager.save(review);
       await queryRunner.commitTransaction();
+
+      this.utilService.slackWebHook('alert', slackMsg);
       return { review: savedReview };
     } catch (error) {
       await queryRunner.rollbackTransaction();
