@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import bcrypt from 'bcrypt';
+import bcrypt, { hash } from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { UserCareer } from 'src/entity/user-career.entity';
 import { UtilService } from 'src/util/util.service';
@@ -177,17 +177,63 @@ export class UserService {
 
   async findUser(data) {
     const { field, value } = data;
+    console.log(data);
     const users = await this.userRepository.find({ where: { [field]: value } });
     if (!users) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-
+    console.log(users);
     const result = users.map(user => ({
       user_id: user.user_id,
       nickname: user.nickname,
       created_date: user.created_date,
     }));
+    console.log(result);
     return result;
+  }
+
+  async updateInfo(userId, userData) {
+    const { nickname, phonenumber } = userData;
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    user.nickname = nickname;
+    user.phonenumber = phonenumber;
+    user.modified_date = new Date();
+
+    const savedUser = await this.userRepository.save(user);
+
+    const userInfo = new UserInfoGetDto(savedUser);
+    return userInfo;
+  }
+
+  async updatePassword(userId, userDate) {
+    const { password, newPassword } = userDate;
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
+
+    const match = await bcrypt.compare(password, user.password);
+    if (match) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+
+    const newHashPassword = bcrypt.hashSync(newPassword, salt);
+
+    user.password = newHashPassword;
+    user.modified_date = new Date();
+
+    const savedUser = await this.userRepository.save(user);
+
+    const userInfo = new UserInfoGetDto(savedUser);
+    return userInfo;
   }
 
   async updatePw(data) {
@@ -202,6 +248,7 @@ export class UserService {
     const hashPw = bcrypt.hashSync(value, salt);
 
     user.password = hashPw;
+    user.modified_date = new Date();
     try {
       await this.userRepository.save(user);
       return true;
@@ -228,6 +275,7 @@ export class UserService {
 
     if (user && file.location) {
       user.profile_image = file.location;
+      user.modified_date = new Date();
       await this.userRepository.save(user);
     }
 

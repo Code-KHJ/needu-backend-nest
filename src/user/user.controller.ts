@@ -34,7 +34,6 @@ export class UserController {
   })
   async duplic(@Body() userDupicDto: UserDuplicDto, @Res() res: Response) {
     const result = await this.userService.duplic(userDupicDto);
-    console.log(result);
     return res.json(result);
   }
 
@@ -62,17 +61,30 @@ export class UserController {
     return res.json(result);
   }
 
-  @Put('/update')
+  @Patch('/update/info')
   @ApiOperation({ summary: '회원정보 수정' })
   @ApiResponse({
     status: 200,
     description: '회원정보 수정 성공',
   })
-  update() {}
+  async updateInfo(@GetCurrentUser('id') userId: number, @Body() userData: object) {
+    const response = await this.userService.updateInfo(userId, userData);
+    return response;
+  }
 
-  /////토큰 기능 구현 완료 후에 토큰 기준으로 처리
+  @Patch('/update/password')
+  @ApiOperation({ summary: '비밀번호 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '비밀번호 수정 성공',
+  })
+  async updatePassword(@GetCurrentUser('id') userId: number, @Body() userDate: object) {
+    const response = await this.userService.updatePassword(userId, userDate);
+    return response;
+  }
+
   @Public()
-  @Put('/update/pw')
+  @Patch('/update/pw')
   @ApiOperation({ summary: '비밀번호 수정' })
   @ApiResponse({
     status: 200,
