@@ -159,6 +159,17 @@ export class UserController {
     return;
   }
 
+  @Get('/career/list')
+  @ApiOperation({ summary: '커리어 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '커리어 목록 조회',
+  })
+  async getCareerList(@GetCurrentUser('user_id') user_id: string) {
+    const response = await this.userService.getCareerList(user_id);
+    return response;
+  }
+
   @Patch('/career/:no')
   @ApiOperation({ summary: '커리어 수정' })
   @ApiResponse({

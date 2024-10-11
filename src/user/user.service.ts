@@ -5,7 +5,7 @@ import bcrypt, { hash } from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { UserCareer } from 'src/entity/user-career.entity';
 import { UtilService } from 'src/util/util.service';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
 import { CareerCreateDto } from './dto/career-create.dto';
 import { UserCreateResponseDto } from './dto/user-create-response.dto';
@@ -13,6 +13,7 @@ import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
+import { CareerListGetResponseDto } from './dto/career-get.dto';
 
 @Injectable()
 export class UserService {
@@ -268,6 +269,17 @@ export class UserService {
 
   async getCareer(review_no: number) {
     return this.careerRepository.findOne({ where: { review_no: review_no } });
+  }
+
+  async getCareerList(user_id: string) {
+    const careerList = await this.careerRepository.find({
+      where: [
+        { user_id: user_id, is_del: false },
+        { user_id: user_id, is_del: IsNull() },
+      ],
+    });
+    const result = careerList.map(career => new CareerListGetResponseDto(career));
+    return result;
   }
 
   async uploadProfile(userId: number, file: Express.MulterS3.File) {
