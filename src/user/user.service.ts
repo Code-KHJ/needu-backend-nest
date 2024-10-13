@@ -1,19 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import bcrypt, { hash } from 'bcrypt';
+import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { UserCareer } from 'src/entity/user-career.entity';
 import { UtilService } from 'src/util/util.service';
 import { IsNull, Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
 import { CareerCreateDto } from './dto/career-create.dto';
+import { CareerListGetResponseDto } from './dto/career-get.dto';
 import { UserCreateResponseDto } from './dto/user-create-response.dto';
 import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
-import { CareerListGetResponseDto } from './dto/career-get.dto';
 
 @Injectable()
 export class UserService {
@@ -279,6 +279,26 @@ export class UserService {
       ],
     });
     const result = careerList.map(career => new CareerListGetResponseDto(career));
+    return result;
+  }
+
+  async updateCareer(user_id: string, careerData) {
+    const { id, start_date, end_date, career_type } = careerData;
+    const career = await this.careerRepository.findOne({ where: { id: id } });
+    if (!career.id) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    if (user_id !== career.user_id) {
+      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+    }
+
+    career.first_date = start_date;
+    career.last_date = end_date;
+    career.type = career_type;
+
+    const savedCareer = await this.careerRepository.save(career);
+    const result = new CareerListGetResponseDto(savedCareer);
+
     return result;
   }
 

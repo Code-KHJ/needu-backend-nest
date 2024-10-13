@@ -171,14 +171,15 @@ export class CommunityService {
   }
 
   async updateView(postId: number) {
-    const post = await this.communityPostRepository.findOne({ where: { id: postId } });
+    const result = await this.communityPostRepository.update(postId, {
+      view: () => 'view + 1',
+      updated_at: () => 'updated_at',
+    });
 
-    if (!post.id) {
-      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    // affected가 0이면 해당 ID의 포스트가 없음을 의미
+    if (result.affected === 0) {
+      throw new HttpException('POST_NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-
-    post.view += 1;
-    await this.communityPostRepository.save(post);
 
     return;
   }

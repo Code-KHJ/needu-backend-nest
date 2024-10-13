@@ -1,13 +1,13 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Param, Req, Res, Put, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { Response } from 'express';
-import { UserService } from './user.service';
+import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UserDuplicDto } from './dto/user-duplic.dto';
-import { UserCreateDto } from './dto/user-create.dto';
-import { UserDeleteeDto } from './dto/user-delete.dto';
+import { Response } from 'express';
 import { GetCurrentUser, Public } from '../common/decorators';
 import { CareerCreateDto } from './dto/career-create.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { UserCreateDto } from './dto/user-create.dto';
+import { UserDeleteeDto } from './dto/user-delete.dto';
+import { UserDuplicDto } from './dto/user-duplic.dto';
+import { UserService } from './user.service';
 
 @ApiTags('User')
 @Controller('/api/user')
@@ -170,11 +170,14 @@ export class UserController {
     return response;
   }
 
-  @Patch('/career/:no')
+  @Patch('/career')
   @ApiOperation({ summary: '커리어 수정' })
   @ApiResponse({
     status: 201,
     description: '커리어 수정',
   })
-  async updateCareer() {}
+  async updateCareer(@GetCurrentUser('user_id') user_id: string, @Body() careerData: object) {
+    const response = await this.userService.updateCareer(user_id, careerData);
+    return response;
+  }
 }
