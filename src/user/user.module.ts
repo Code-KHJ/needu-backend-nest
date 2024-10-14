@@ -10,11 +10,13 @@ import { User } from '../entity/user.entity';
 import { RedisModule } from '../redis/redis.module';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { ActivityType } from 'src/entity/activity-type.entity';
+import { ActivityLog } from 'src/entity/activity-log.entity';
 
 @Module({
   imports: [
     MulterModule.registerAsync({ imports: [ConfigModule], useFactory: multerOptionsFactory }),
-    TypeOrmModule.forFeature([User, UserCareer]),
+    TypeOrmModule.forFeature([User, UserCareer, ActivityType, ActivityLog]),
     RedisModule,
     Axios,
   ],

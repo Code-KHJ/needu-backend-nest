@@ -20,6 +20,7 @@ import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post
 import { PostLikeDto } from './dto/post-like.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
+import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class CommunityService {
@@ -41,6 +42,7 @@ export class CommunityService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly utilService: UtilService,
+    private readonly sharedService: SharedService,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -77,7 +79,9 @@ export class CommunityService {
 링크 : http://43.203.214.137/community/${savedPostForAlert.topic.type.id === 1 ? 'free' : 'question'}/${savedPost.id}
 `;
 
-    this.utilService.slackWebHook('alert', slackMsg);
+    // this.utilService.slackWebHook('alert', slackMsg);
+    this.sharedService.addPoint(userId, 4);
+
     return { post: savedPost };
   }
 

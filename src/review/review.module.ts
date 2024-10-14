@@ -13,9 +13,11 @@ import { Hashtag } from '../entity/hashtag.entity';
 import { Review } from '../entity/review.entity';
 import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
+import { ActivityType } from 'src/entity/activity-type.entity';
+import { ActivityLog } from 'src/entity/activity-log.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, ReviewTraning, ReviewLike, ReviewTrainingLike, Hashtag, Corp, UserCareer, User])],
+  imports: [TypeOrmModule.forFeature([Review, ReviewTraning, ReviewLike, ReviewTrainingLike, Hashtag, Corp, UserCareer, User, ActivityType, ActivityLog])],
   providers: [ReviewService, CorpService, UserService, UtilService],
   controllers: [ReviewController],
 })

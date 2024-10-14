@@ -6,6 +6,9 @@ import { ReviewHashtag } from 'src/entity/review-hashtag.entity';
 import { UtilService } from 'src/util/util.service';
 import { Repository } from 'typeorm';
 import { ReportCreateDto } from './dto/report-create.dto';
+import { ActivityType } from 'src/entity/activity-type.entity';
+import { ActivityLog } from 'src/entity/activity-log.entity';
+import { User } from 'src/entity/user.entity';
 
 @Injectable()
 export class SharedService {
@@ -16,6 +19,12 @@ export class SharedService {
     private readonly reviewHashtagRepository: Repository<ReviewHashtag>,
     @InjectRepository(Report)
     private readonly reportRepository: Repository<Report>,
+    @InjectRepository(ActivityType)
+    private readonly activityTypeRepository: Repository<ActivityType>,
+    @InjectRepository(ActivityLog)
+    private readonly activityLogRepository: Repository<ActivityLog>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly utilService: UtilService,
   ) {}
 
@@ -52,5 +61,31 @@ export class SharedService {
     } else {
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async addPoint(userId: number, type: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    const activityType = await this.activityTypeRepository.findOne({ where: { id: type } });
+    //출석일 경우 중복 제외
+    if (type === 2) {
+    }
+    //개인정보 추가일 경우 중복 제외
+    else if (type === 8) {
+    } else {
+      const newLog = await this.activityLogRepository.create({ user: user, type: activityType });
+      await this.activityLogRepository.save(newLog);
+    }
+
+    let totalPoints = 0;
+    const activityLog = await this.activityLogRepository.find({ where: { user: { id: userId } }, relations: ['type'] });
+    activityLog.map(log => (totalPoints += log.type.point));
+
+    await this.userRepository.update(userId, {
+      activity_points: totalPoints,
+      modified_date: () => 'modified_date',
+    });
   }
 }

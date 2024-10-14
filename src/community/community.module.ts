@@ -15,6 +15,8 @@ import { UtilService } from 'src/util/util.service';
 import { CommunityCommentAccepted } from './../entity/community_comment_accepted.entity';
 import { CommunityController } from './community.controller';
 import { CommunityService } from './community.service';
+import { SharedService } from 'src/shared/shared.service';
+import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
   imports: [
@@ -30,8 +32,9 @@ import { CommunityService } from './community.service';
       CommunityWeeklyBest,
       User,
     ]),
+    SharedModule,
   ],
   controllers: [CommunityController],
-  providers: [CommunityService, UtilService],
+  providers: [CommunityService, UtilService, SharedService],
 })
 export class CommunityModule {}

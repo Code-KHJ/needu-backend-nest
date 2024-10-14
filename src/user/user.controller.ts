@@ -120,7 +120,6 @@ export class UserController {
   })
   async uploadImage(@GetCurrentUser('id') userId: number, @UploadedFile() file: Express.MulterS3.File) {
     const response = await this.userService.uploadProfile(userId, file);
-
     return response;
   }
 
@@ -132,7 +131,6 @@ export class UserController {
   })
   async getUserInfo(@GetCurrentUser('id') userId: number) {
     const response = await this.userService.getUserInfo(userId);
-
     return response;
   }
 
@@ -178,6 +176,17 @@ export class UserController {
   })
   async updateCareer(@GetCurrentUser('user_id') user_id: string, @Body() careerData: object) {
     const response = await this.userService.updateCareer(user_id, careerData);
+    return response;
+  }
+
+  @Get('/point/log')
+  @ApiOperation({ summary: '유저 포인트 내역 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '포인트 조회',
+  })
+  async getPointLog(@GetCurrentUser('id') userId: number) {
+    const response = await this.userService.getPointLog(userId);
     return response;
   }
 }

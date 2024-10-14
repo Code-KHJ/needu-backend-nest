@@ -14,6 +14,8 @@ import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
+import { ActivityType } from 'src/entity/activity-type.entity';
+import { ActivityLog } from 'src/entity/activity-log.entity';
 
 @Injectable()
 export class UserService {
@@ -22,7 +24,10 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserCareer)
     private readonly careerRepository: Repository<UserCareer>,
-
+    @InjectRepository(ActivityType)
+    private readonly activityTypeRepository: Repository<ActivityType>,
+    @InjectRepository(ActivityLog)
+    private readonly activityLogRepository: Repository<ActivityLog>,
     private readonly utilService: UtilService,
   ) {}
 
@@ -322,5 +327,26 @@ export class UserService {
     }
     const userInfo = new UserInfoGetDto(user);
     return userInfo;
+  }
+
+  async getPointLog(userId: number) {
+    const activityType = await this.activityTypeRepository.find({ select: { id: true, type: true } });
+
+    const activityLog = await this.activityLogRepository.find({ where: { user: { id: userId } }, relations: ['type'] });
+
+    const pointMap = new Map<number, number>();
+
+    activityLog.forEach(log => {
+      const typeId = log.type.id;
+      const point = log.type.point;
+
+      pointMap.set(typeId, (pointMap.get(typeId) || 0) + point);
+    });
+    const activity = activityType.map(type => ({
+      ...type,
+      totalPoints: pointMap.get(type.id) || 0,
+    }));
+
+    return activity;
   }
 }
