@@ -15,10 +15,15 @@ import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
 import { ActivityType } from 'src/entity/activity-type.entity';
 import { ActivityLog } from 'src/entity/activity-log.entity';
+import { SharedModule } from 'src/shared/shared.module';
+import { SharedService } from 'src/shared/shared.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, ReviewTraning, ReviewLike, ReviewTrainingLike, Hashtag, Corp, UserCareer, User, ActivityType, ActivityLog])],
-  providers: [ReviewService, CorpService, UserService, UtilService],
+  imports: [
+    TypeOrmModule.forFeature([Review, ReviewTraning, ReviewLike, ReviewTrainingLike, Hashtag, Corp, UserCareer, User, ActivityType, ActivityLog]),
+    SharedModule,
+  ],
+  providers: [ReviewService, CorpService, UserService, UtilService, SharedService],
   controllers: [ReviewController],
 })
 export class ReviewModule {}

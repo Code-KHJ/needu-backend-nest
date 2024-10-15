@@ -12,6 +12,8 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { ActivityType } from 'src/entity/activity-type.entity';
 import { ActivityLog } from 'src/entity/activity-log.entity';
+import { SharedModule } from 'src/shared/shared.module';
+import { SharedService } from 'src/shared/shared.service';
 
 @Module({
   imports: [
@@ -19,8 +21,9 @@ import { ActivityLog } from 'src/entity/activity-log.entity';
     TypeOrmModule.forFeature([User, UserCareer, ActivityType, ActivityLog]),
     RedisModule,
     Axios,
+    SharedModule,
   ],
-  providers: [UserService, UtilService],
+  providers: [UserService, UtilService, SharedService],
   controllers: [UserController],
 })
 export class UserModule {}

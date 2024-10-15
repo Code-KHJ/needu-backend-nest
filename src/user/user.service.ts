@@ -16,6 +16,7 @@ import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
 import { ActivityType } from 'src/entity/activity-type.entity';
 import { ActivityLog } from 'src/entity/activity-log.entity';
+import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class UserService {
@@ -29,6 +30,7 @@ export class UserService {
     @InjectRepository(ActivityLog)
     private readonly activityLogRepository: Repository<ActivityLog>,
     private readonly utilService: UtilService,
+    private readonly sharedService: SharedService,
   ) {}
 
   async create(userCreateDto: UserCreateDto): Promise<UserCreateResponseDto> {
@@ -63,9 +65,10 @@ export class UserService {
 회원가입하셨습니다.
 `;
     try {
-      await this.userRepository.save(user);
+      const savedUser = await this.userRepository.save(user);
       this.utilService.slackWebHook('alert', slackMsg);
-      return new UserCreateResponseDto(user);
+      this.sharedService.addPoint(savedUser.id, 1);
+      return new UserCreateResponseDto(savedUser);
     } catch (error) {
       console.error(error);
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);

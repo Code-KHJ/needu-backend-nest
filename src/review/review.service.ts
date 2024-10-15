@@ -16,6 +16,7 @@ import { ReviewsGetResponseDto } from './dto/review-get-response.dto';
 import { LikeDto } from './dto/review-like.dto';
 import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewsTrainingGetResponseDto } from './dto/review-training-get-response.dto';
+import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class ReviewService {
@@ -33,6 +34,7 @@ export class ReviewService {
     private readonly userService: UserService,
     private readonly dataSource: DataSource,
     private readonly utilService: UtilService,
+    private readonly sharedService: SharedService,
   ) {}
 
   // 전현직 리뷰 생성
@@ -84,6 +86,8 @@ export class ReviewService {
       await queryRunner.commitTransaction();
 
       this.utilService.slackWebHook('alert', slackMsg);
+      // this.sharedService.addPoint(savedUser.id, 3);
+
       return { review: savedReview, career: savedCareer };
     } catch (error) {
       await queryRunner.rollbackTransaction();

@@ -79,7 +79,7 @@ export class CommunityService {
 링크 : http://43.203.214.137/community/${savedPostForAlert.topic.type.id === 1 ? 'free' : 'question'}/${savedPost.id}
 `;
 
-    // this.utilService.slackWebHook('alert', slackMsg);
+    this.utilService.slackWebHook('alert', slackMsg);
     this.sharedService.addPoint(userId, 4);
 
     return { post: savedPost };
@@ -332,6 +332,9 @@ export class CommunityService {
     if (!savedComment.id) {
       throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    this.sharedService.addPoint(userId, 5);
+
     return { success: true, comment: savedComment };
   }
 
@@ -436,7 +439,7 @@ export class CommunityService {
   async acceptComment(userId: number, acceptDto: CommunityCommentAcceptDto) {
     const { post_id, comment_id } = acceptDto;
     const post = await this.communityPostRepository.findOne({ where: { id: post_id } });
-    const comment = await this.communityCommentRepository.findOne({ where: { id: comment_id } });
+    const comment = await this.communityCommentRepository.findOne({ where: { id: comment_id }, relations: ['user'] });
     if (!post.id || !comment.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
@@ -450,6 +453,8 @@ export class CommunityService {
     };
     const accept = await this.communityCommentAcceptedRepository.create(Dto);
     const savedAccept = await this.communityCommentAcceptedRepository.save(accept);
+
+    this.sharedService.addPoint(comment.user.id, 6);
 
     return { success: true, msg: '채택 완료' };
   }
@@ -471,7 +476,7 @@ export class CommunityService {
     if (user.authority !== 100) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
-    const post = await this.communityPostRepository.findOne({ where: { id: postId } });
+    const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user'] });
     if (!post.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
@@ -487,6 +492,8 @@ export class CommunityService {
       duplicWeekly.is_del = false;
       duplicWeekly.updated_at = new Date();
       const savedWeekly = await this.communityWeeklyBestRepository.save(duplicWeekly);
+
+      this.sharedService.addPoint(post.user.id, 7);
 
       return savedWeekly;
     }
