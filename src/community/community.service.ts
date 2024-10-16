@@ -9,6 +9,7 @@ import { CommunityTopic } from 'src/entity/community-topic.entity';
 import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
 import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.entity';
 import { User } from 'src/entity/user.entity';
+import { SharedService } from 'src/shared/shared.service';
 import { UtilService } from 'src/util/util.service';
 import { In, IsNull, Repository } from 'typeorm';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
@@ -20,7 +21,6 @@ import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post
 import { PostLikeDto } from './dto/post-like.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
-import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class CommunityService {
@@ -471,8 +471,8 @@ export class CommunityService {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
 
-    await this.communityCommentAcceptedRepository.remove(accepted);
     this.sharedService.revokePoint(comment.user.id, 6, `accepted${accepted.id}`);
+    await this.communityCommentAcceptedRepository.remove(accepted);
 
     return { success: true, msg: '채택 취소' };
   }
@@ -498,14 +498,13 @@ export class CommunityService {
       duplicWeekly.is_del = false;
       duplicWeekly.updated_at = new Date();
       const savedWeekly = await this.communityWeeklyBestRepository.save(duplicWeekly);
-
       this.sharedService.addPoint(post.user.id, 7, `weekly${savedWeekly.id}`);
 
       return savedWeekly;
     }
-
     const weekly = await this.communityWeeklyBestRepository.create(dto);
     const savedWeekly = await this.communityWeeklyBestRepository.save(weekly);
+    this.sharedService.addPoint(post.user.id, 7, `weekly${savedWeekly.id}`);
 
     return savedWeekly;
   }

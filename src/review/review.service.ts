@@ -5,6 +5,7 @@ import { ReviewLike } from 'src/entity/review-like.entity';
 import { ReviewTrainingLike } from 'src/entity/review-training-like.entity';
 import { ReviewTraning } from 'src/entity/review-training.entity';
 import { UserCareer } from 'src/entity/user-career.entity';
+import { SharedService } from 'src/shared/shared.service';
 import { CareerCreateDto } from 'src/user/dto/career-create.dto';
 import { UserService } from 'src/user/user.service';
 import { UtilService } from 'src/util/util.service';
@@ -16,7 +17,6 @@ import { ReviewsGetResponseDto } from './dto/review-get-response.dto';
 import { LikeDto } from './dto/review-like.dto';
 import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewsTrainingGetResponseDto } from './dto/review-training-get-response.dto';
-import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class ReviewService {
@@ -86,7 +86,8 @@ export class ReviewService {
       await queryRunner.commitTransaction();
 
       this.utilService.slackWebHook('alert', slackMsg);
-      // this.sharedService.addPoint(savedUser.id, 3);
+      const findReview = await this.reviewRepository.findOne({ where: { id: savedReview.id }, relations: ['user'] });
+      this.sharedService.addPoint(findReview.user.id, 3, `working${savedReview.id}`);
 
       return { review: savedReview, career: savedCareer };
     } catch (error) {
@@ -231,9 +232,7 @@ export class ReviewService {
     if (userId != deleteReviewDto.user_id) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
-    const review = await this.reviewRepository.findOneBy({
-      id: deleteReviewDto.review_no,
-    });
+    const review = await this.reviewRepository.findOne({ where: { id: deleteReviewDto.review_no }, relations: ['user'] });
     if (!review) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
@@ -250,6 +249,9 @@ export class ReviewService {
       await queryRunner.manager.save(review);
       await queryRunner.manager.save(career);
       await queryRunner.commitTransaction();
+
+      this.sharedService.revokePoint(review.user.id, 3, `working${review.id}`);
+
       return { msg: '삭제완료' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -290,6 +292,9 @@ export class ReviewService {
       await queryRunner.commitTransaction();
 
       this.utilService.slackWebHook('alert', slackMsg);
+      const findReview = await this.reviewTrainingRepository.findOne({ where: { id: savedReview.id }, relations: ['user'] });
+      this.sharedService.addPoint(findReview.user.id, 3, `training${savedReview.id}`);
+
       return { review: savedReview };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -411,8 +416,11 @@ export class ReviewService {
     if (userId != deleteReviewDto.user_id) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
-    const review = await this.reviewTrainingRepository.findOneBy({
-      id: deleteReviewDto.review_no,
+    const review = await this.reviewTrainingRepository.findOne({
+      where: {
+        id: deleteReviewDto.review_no,
+      },
+      relations: ['user'],
     });
     if (!review) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -427,6 +435,9 @@ export class ReviewService {
     try {
       await queryRunner.manager.save(review);
       await queryRunner.commitTransaction();
+
+      this.sharedService.revokePoint(review.user.id, 3, `training${review.id}`);
+
       return { msg: '삭제완료' };
     } catch (error) {
       await queryRunner.rollbackTransaction();

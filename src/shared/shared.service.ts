@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ActivityLog } from 'src/entity/activity-log.entity';
+import { ActivityType } from 'src/entity/activity-type.entity';
 import { CareerType } from 'src/entity/career-type.entity';
 import { Report } from 'src/entity/report.entity';
 import { ReviewHashtag } from 'src/entity/review-hashtag.entity';
+import { User } from 'src/entity/user.entity';
 import { UtilService } from 'src/util/util.service';
 import { Repository } from 'typeorm';
 import { ReportCreateDto } from './dto/report-create.dto';
-import { ActivityType } from 'src/entity/activity-type.entity';
-import { ActivityLog } from 'src/entity/activity-log.entity';
-import { User } from 'src/entity/user.entity';
 
 @Injectable()
 export class SharedService {
@@ -71,27 +71,54 @@ export class SharedService {
     const activityType = await this.activityTypeRepository.findOne({ where: { id: type } });
     //출석일 경우 중복 제외
     if (type === 2) {
+      const today = new Date().toISOString().split('T')[0];
+      const log = await this.activityLogRepository
+        .createQueryBuilder('log')
+        .where('log.user_id = :userId', { userId })
+        .andWhere('log.type_id = :type', { type })
+        .andWhere('DATE(log.created_at) = :today', { today })
+        .andWhere('log.is_del = false')
+        .getOne();
+      if (log) {
+        return;
+      }
     }
     //개인정보 추가일 경우 중복 제외
     else if (type === 8) {
-    } else {
-      const newLog = await this.activityLogRepository.create({ user: user, type: activityType, reason: reason || null });
-      await this.activityLogRepository.save(newLog);
+      const log = await this.activityLogRepository.findOne({ where: { user: { id: userId }, type: { id: type }, is_del: false } });
+      console.log(log);
+      if (log) {
+        return;
+      }
     }
 
+    const newLog = await this.activityLogRepository.create({ user: user, type: activityType, reason: reason || null });
+    await this.activityLogRepository.save(newLog);
+
+    this.updateTotalPoint(userId);
+  }
+
+  async revokePoint(userId: number, type: number, reason?: string) {
+    console.log(userId);
+    console.log(type);
+    console.log(reason);
+    const log = await this.activityLogRepository.findOne({ where: { user: { id: userId }, type: { id: type }, reason: reason || null, is_del: false } });
+    if (log) {
+      log.is_del = true;
+      await this.activityLogRepository.save(log);
+      this.updateTotalPoint(userId);
+    }
+    console.log(log);
+  }
+
+  async updateTotalPoint(userId: number) {
     let totalPoints = 0;
-    const activityLog = await this.activityLogRepository.find({ where: { user: { id: userId } }, relations: ['type'] });
+    const activityLog = await this.activityLogRepository.find({ where: { user: { id: userId }, is_del: false }, relations: ['type'] });
     activityLog.map(log => (totalPoints += log.type.point));
 
     await this.userRepository.update(userId, {
       activity_points: totalPoints,
       modified_date: () => 'modified_date',
     });
-  }
-
-  async revokePoint(userId: number, type: number, reason?: string) {
-    const log = await this.activityLogRepository.findOne({ where: { user: { id: userId }, type: { id: type }, reason: reason || null, is_del: false } });
-
-    console.log(log);
   }
 }

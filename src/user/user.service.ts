@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
+import { ActivityLog } from 'src/entity/activity-log.entity';
+import { ActivityType } from 'src/entity/activity-type.entity';
 import { UserCareer } from 'src/entity/user-career.entity';
+import { SharedService } from 'src/shared/shared.service';
 import { UtilService } from 'src/util/util.service';
 import { IsNull, Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
@@ -14,9 +17,6 @@ import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
-import { ActivityType } from 'src/entity/activity-type.entity';
-import { ActivityLog } from 'src/entity/activity-log.entity';
-import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class UserService {
@@ -215,6 +215,10 @@ export class UserService {
 
     const savedUser = await this.userRepository.save(user);
 
+    if (savedUser.phonenumber && savedUser.nickname && savedUser.profile_image) {
+      this.sharedService.addPoint(user.id, 8);
+    }
+
     const userInfo = new UserInfoGetDto(savedUser);
     return userInfo;
   }
@@ -316,7 +320,11 @@ export class UserService {
     if (user && file.location) {
       user.profile_image = file.location;
       user.modified_date = new Date();
-      await this.userRepository.save(user);
+      const savedUser = await this.userRepository.save(user);
+
+      if (savedUser.phonenumber && savedUser.nickname && savedUser.profile_image) {
+        this.sharedService.addPoint(user.id, 8);
+      }
     }
 
     return { imageUrl: user.profile_image };
@@ -335,7 +343,7 @@ export class UserService {
   async getPointLog(userId: number) {
     const activityType = await this.activityTypeRepository.find({ select: { id: true, type: true } });
 
-    const activityLog = await this.activityLogRepository.find({ where: { user: { id: userId } }, relations: ['type'] });
+    const activityLog = await this.activityLogRepository.find({ where: { user: { id: userId }, is_del: false }, relations: ['type'] });
 
     const pointMap = new Map<number, number>();
 

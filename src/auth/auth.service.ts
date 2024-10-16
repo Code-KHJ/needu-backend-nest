@@ -1,15 +1,16 @@
-import { HttpException, HttpStatus, Inject, Injectable, Res } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entity/user.entity';
-import { Repository } from 'typeorm';
-import { Redis } from 'ioredis';
-import { JwtPayloadDto } from './dto/jwt-payload.dto';
-import * as jwt from 'jsonwebtoken';
-import { LoginDto } from './dto/login.dto';
 import bcrypt from 'bcrypt';
-import { JwtResponseDto } from './dto/jwt-response.dto';
+import { Redis } from 'ioredis';
+import * as jwt from 'jsonwebtoken';
+import { SharedService } from 'src/shared/shared.service';
+import { Repository } from 'typeorm';
+import { User } from '../entity/user.entity';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { JwtPayloadDto } from './dto/jwt-payload.dto';
+import { JwtResponseDto } from './dto/jwt-response.dto';
 import { KakaoLoginDto } from './dto/kakao-login.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private userRepository: Repository<User>,
     @Inject('REDIS_CLIENT')
     private readonly redis: Redis,
+    private readonly sharedService: SharedService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -44,6 +46,8 @@ export class AuthService {
     const current = new Date().toISOString().slice(0, 10);
     user.login_date = new Date(current);
     await this.userRepository.save(user);
+
+    this.sharedService.addPoint(user.id, 2);
 
     const result = {
       id: user.id,
@@ -75,6 +79,7 @@ export class AuthService {
         google: true,
       });
       await this.userRepository.save(user);
+      this.sharedService.addPoint(user.id, 1);
     }
     if (!user.google) {
       user.google = true;
@@ -89,6 +94,8 @@ export class AuthService {
     const current = new Date().toISOString().slice(0, 10);
     user.login_date = new Date(current);
     await this.userRepository.save(user);
+
+    this.sharedService.addPoint(user.id, 2);
 
     const result = {
       id: user.user_id,
@@ -117,6 +124,7 @@ export class AuthService {
         kakao: true,
       });
       await this.userRepository.save(user);
+      this.sharedService.addPoint(user.id, 1);
     }
     if (!user.kakao) {
       user.kakao = true;
@@ -131,6 +139,8 @@ export class AuthService {
     const current = new Date().toISOString().slice(0, 10);
     user.login_date = new Date(current);
     await this.userRepository.save(user);
+
+    this.sharedService.addPoint(user.id, 2);
 
     const result = {
       id: user.user_id,
@@ -172,6 +182,8 @@ export class AuthService {
     const current = new Date().toISOString().slice(0, 10);
     user.login_date = new Date(current);
     await this.userRepository.save(user);
+
+    this.sharedService.addPoint(user.id, 2);
 
     return { accessToken, refreshToken };
   }
