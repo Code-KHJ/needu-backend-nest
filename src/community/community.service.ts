@@ -80,7 +80,7 @@ export class CommunityService {
 `;
 
     this.utilService.slackWebHook('alert', slackMsg);
-    this.sharedService.addPoint(userId, 4);
+    this.sharedService.addPoint(userId, 4, `post${savedPost.id}`);
 
     return { post: savedPost };
   }
@@ -307,6 +307,8 @@ export class CommunityService {
       throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    this.sharedService.revokePoint(userId, 4, `post${savedPost.id}`);
+
     return { success: true, msg: '삭제완료' };
   }
 
@@ -333,7 +335,7 @@ export class CommunityService {
       throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    this.sharedService.addPoint(userId, 5);
+    this.sharedService.addPoint(userId, 5, `comment${savedComment.id}`);
 
     return { success: true, comment: savedComment };
   }
@@ -433,6 +435,7 @@ export class CommunityService {
       throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    this.sharedService.revokePoint(userId, 5, `comment${savedComment.id}`);
     return { success: true, msg: '삭제완료' };
   }
 
@@ -454,20 +457,23 @@ export class CommunityService {
     const accept = await this.communityCommentAcceptedRepository.create(Dto);
     const savedAccept = await this.communityCommentAcceptedRepository.save(accept);
 
-    this.sharedService.addPoint(comment.user.id, 6);
-
+    this.sharedService.addPoint(comment.user.id, 6, `accepted${savedAccept.id}`);
     return { success: true, msg: '채택 완료' };
   }
 
   async unacceptComment(userId: number, acceptedId: number) {
     const accepted = await this.communityCommentAcceptedRepository.findOne({ where: { comment: { id: acceptedId } } });
+    const comment = await this.communityCommentRepository.findOne({ where: { id: acceptedId }, relations: ['user'] });
     if (!accepted.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (accepted.post.user_id !== userId) {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
+
     await this.communityCommentAcceptedRepository.remove(accepted);
+    this.sharedService.revokePoint(comment.user.id, 6, `accepted${accepted.id}`);
+
     return { success: true, msg: '채택 취소' };
   }
 
@@ -493,7 +499,7 @@ export class CommunityService {
       duplicWeekly.updated_at = new Date();
       const savedWeekly = await this.communityWeeklyBestRepository.save(duplicWeekly);
 
-      this.sharedService.addPoint(post.user.id, 7);
+      this.sharedService.addPoint(post.user.id, 7, `weekly${savedWeekly.id}`);
 
       return savedWeekly;
     }
@@ -511,6 +517,7 @@ export class CommunityService {
     }
 
     const weekly = await this.communityWeeklyBestRepository.findOne({ where: { post: { id: postId } } });
+    const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user'] });
     if (!weekly.id) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
@@ -519,6 +526,7 @@ export class CommunityService {
     weekly.updated_at = new Date();
 
     const savedWeekly = await this.communityWeeklyBestRepository.save(weekly);
+    this.sharedService.revokePoint(post.user.id, 7, `weekly${savedWeekly.id}`);
 
     return savedWeekly;
   }

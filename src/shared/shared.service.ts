@@ -63,7 +63,7 @@ export class SharedService {
     }
   }
 
-  async addPoint(userId: number, type: number) {
+  async addPoint(userId: number, type: number, reason?: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -75,7 +75,7 @@ export class SharedService {
     //개인정보 추가일 경우 중복 제외
     else if (type === 8) {
     } else {
-      const newLog = await this.activityLogRepository.create({ user: user, type: activityType });
+      const newLog = await this.activityLogRepository.create({ user: user, type: activityType, reason: reason || null });
       await this.activityLogRepository.save(newLog);
     }
 
@@ -87,5 +87,11 @@ export class SharedService {
       activity_points: totalPoints,
       modified_date: () => 'modified_date',
     });
+  }
+
+  async revokePoint(userId: number, type: number, reason?: string) {
+    const log = await this.activityLogRepository.findOne({ where: { user: { id: userId }, type: { id: type }, reason: reason || null, is_del: false } });
+
+    console.log(log);
   }
 }
