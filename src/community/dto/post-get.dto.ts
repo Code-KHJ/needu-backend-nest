@@ -15,6 +15,7 @@ export class PostGetResponseDto {
   postType: string;
   topicType: string;
   commentAccepted: number | null;
+  weeklyBest: number | null;
   writer: {
     id: number;
     nickname: string;
@@ -35,6 +36,7 @@ export class PostGetResponseDto {
     this.postType = post.topic.type.type;
     this.topicType = post.topic.topic;
     this.commentAccepted = post.comment_accepted?.comment.id;
+    this.weeklyBest = post.wb?.id;
     this.postLikes = post.likes;
     this.comment_cnt = post.comments.filter(comment => !comment.is_del).length;
     this.writer = {

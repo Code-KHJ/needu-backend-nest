@@ -163,14 +163,13 @@ export class CommunityService {
         { user_id: userId, is_del: false },
         { user_id: userId, is_del: IsNull() },
       ],
-      relations: ['user', 'topic', 'likes', 'comments'],
+      relations: ['user', 'topic', 'likes', 'comments', 'comment_accepted', 'wb'],
       order: {
         id: 'DESC',
       },
     });
 
     const postList = posts.map(post => new PostGetResponseDto(post));
-
     return postList;
   }
 
