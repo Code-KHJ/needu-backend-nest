@@ -99,16 +99,12 @@ export class SharedService {
   }
 
   async revokePoint(userId: number, type: number, reason?: string) {
-    console.log(userId);
-    console.log(type);
-    console.log(reason);
     const log = await this.activityLogRepository.findOne({ where: { user: { id: userId }, type: { id: type }, reason: reason || null, is_del: false } });
     if (log) {
       log.is_del = true;
       await this.activityLogRepository.save(log);
       this.updateTotalPoint(userId);
     }
-    console.log(log);
   }
 
   async updateTotalPoint(userId: number) {

@@ -23,6 +23,7 @@ export class ReviewsTrainingGetResponseDto {
     user_id: string;
   };
   reviewLikes: ReviewLike[];
+  corpname: string;
 
   constructor(review) {
     this.id = review.id;
@@ -47,6 +48,7 @@ export class ReviewsTrainingGetResponseDto {
       user_id: hideEmail(review.user.user_id),
     };
     this.reviewLikes = review.reviewTrainingLikes;
+    this.corpname = review.corp.corp_name;
   }
 }
 

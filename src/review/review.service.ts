@@ -123,7 +123,7 @@ export class ReviewService {
         { user_id: userId, is_del: false },
         { user_id: userId, is_del: IsNull() },
       ],
-      relations: ['userCareer', 'reviewLikes', 'user'],
+      relations: ['userCareer', 'reviewLikes', 'user', 'corp'],
       order: {
         id: 'DESC',
       },
