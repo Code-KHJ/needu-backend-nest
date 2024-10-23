@@ -88,7 +88,7 @@ export class CommunityService {
   async getPost(postId: number) {
     const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user', 'topic', 'likes', 'comment_accepted', 'comments'] });
 
-    if (!post.id) {
+    if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (post.is_del) {
@@ -192,7 +192,7 @@ export class CommunityService {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
     const post = await this.communityPostRepository.findOne({ where: { id: postLikeDto.post_id } });
-    if (!post.id) {
+    if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
 
@@ -234,7 +234,7 @@ export class CommunityService {
   async getPostForEdit(userId: number, postId: number) {
     const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['topic'] });
 
-    if (!post.id || post.is_del) {
+    if (!post || post.is_del) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (userId !== post.user_id) {
@@ -256,7 +256,7 @@ export class CommunityService {
     const { id, title, html, markdown, topic_id, user_id } = postUpdateDto;
 
     const post = await this.communityPostRepository.findOneBy({ id: id });
-    if (!post.id) {
+    if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (userId !== post.user_id) {
@@ -291,7 +291,7 @@ export class CommunityService {
 
   async deletePost(userId: number, postId: number) {
     const post = await this.communityPostRepository.findOneBy({ id: postId });
-    if (!post.id) {
+    if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (userId !== post.user_id) {
@@ -319,7 +319,7 @@ export class CommunityService {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
     const post = await this.communityPostRepository.findOne({ where: { id: post_id } });
-    if (!post.id) {
+    if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
 
@@ -353,7 +353,7 @@ export class CommunityService {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
     const comment = await this.communityCommentRepository.findOne({ where: { id: commentLikeDto.comment_id } });
-    if (!comment.id) {
+    if (!comment) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
 
@@ -394,7 +394,7 @@ export class CommunityService {
 
   async updateComment(userId: number, commentId: number, content: string) {
     const comment = await this.communityCommentRepository.findOne({ where: { id: commentId } });
-    if (!comment.id) {
+    if (!comment) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (userId !== comment.user_id) {
@@ -415,7 +415,7 @@ export class CommunityService {
 
   async deleteComment(userId: number, commentId: number) {
     const comment = await this.communityCommentRepository.findOneBy({ id: commentId });
-    if (!comment.id) {
+    if (!comment) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (userId !== comment.user_id) {
@@ -442,7 +442,7 @@ export class CommunityService {
     const { post_id, comment_id } = acceptDto;
     const post = await this.communityPostRepository.findOne({ where: { id: post_id } });
     const comment = await this.communityCommentRepository.findOne({ where: { id: comment_id }, relations: ['user'] });
-    if (!post.id || !comment.id) {
+    if (!post || !comment) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (post.user_id !== userId) {
@@ -463,7 +463,7 @@ export class CommunityService {
   async unacceptComment(userId: number, acceptedId: number) {
     const accepted = await this.communityCommentAcceptedRepository.findOne({ where: { comment: { id: acceptedId } } });
     const comment = await this.communityCommentRepository.findOne({ where: { id: acceptedId }, relations: ['user'] });
-    if (!accepted.id) {
+    if (!accepted) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     if (accepted.post.user_id !== userId) {
@@ -482,7 +482,7 @@ export class CommunityService {
       throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
     const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user'] });
-    if (!post.id) {
+    if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     const dto = {
@@ -516,7 +516,7 @@ export class CommunityService {
 
     const weekly = await this.communityWeeklyBestRepository.findOne({ where: { post: { id: postId } } });
     const post = await this.communityPostRepository.findOne({ where: { id: postId }, relations: ['user'] });
-    if (!weekly.id) {
+    if (!weekly) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
 
