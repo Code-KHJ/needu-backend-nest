@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
@@ -17,6 +17,8 @@ import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
+import Redis from 'ioredis';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
@@ -31,6 +33,8 @@ export class UserService {
     private readonly activityLogRepository: Repository<ActivityLog>,
     private readonly utilService: UtilService,
     private readonly sharedService: SharedService,
+    @Inject('REDIS_CLIENT')
+    private readonly redis: Redis,
   ) {}
 
   async create(userCreateDto: UserCreateDto): Promise<UserCreateResponseDto> {
@@ -248,6 +252,61 @@ export class UserService {
     const userInfo = new UserInfoGetDto(savedUser);
     return userInfo;
   }
+
+  async reqResetPassword(userData) {
+    const { email } = userData;
+    const user = await this.userRepository.findOne({ where: { user_id: email } });
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+
+    const target = email;
+    const resetToken: string = jwt.sign({ email: email }, process.env.JWT_KEY, { issuer: process.env.JWT_ISSUER, algorithm: process.env.JWT_ALGORITHM });
+    this.redis.set(`${email}_reset_password`, resetToken, 'EX', 10800);
+
+    let emailTemplate = `
+      <html>
+      <body>
+        <div>
+          <p style='color:black'>안녕하세요 NeedU입니다.</p>
+          <br>
+          <p style='color:black'>비밀번호는 아래 링크를 클릭하신 후 재설정해주시기 바랍니다.</p>
+          <br/>
+          <a href="${process.env.HOST}/reset/password/${resetToken}"  target="_blank">비밀번호 재설정</a>
+        </div>
+      </body>
+      </html>
+    `;
+
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+
+    let mailOptions = {
+      from: `needu`,
+      to: target,
+      subject: '[Needu] 비밀번호 재설정 안내드립니다.',
+      html: emailTemplate,
+    };
+
+    await transporter.sendMail(mailOptions, function (err, info) {
+      if (err) {
+        console.log(err);
+        return err;
+      }
+      console.log('finish sending : ' + info.response);
+      transporter.close();
+    });
+    return user.user_id;
+  }
+  async resetPassword() {}
 
   async updatePw(data) {
     const { id, field, value } = data;

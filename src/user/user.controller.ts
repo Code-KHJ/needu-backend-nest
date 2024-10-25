@@ -84,6 +84,18 @@ export class UserController {
   }
 
   @Public()
+  @Post('/reset/request/')
+  @ApiOperation({ summary: '비밀번호 재설정 이메일 요청' })
+  @ApiResponse({
+    status: 201,
+    description: '이메일 발송 완료',
+  })
+  async reqResetPassword(@Body() userData: object) {
+    const response = await this.userService.reqResetPassword(userData);
+    return response;
+  }
+
+  @Public()
   @Patch('/update/pw')
   @ApiOperation({ summary: '비밀번호 수정' })
   @ApiResponse({
