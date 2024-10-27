@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -96,17 +96,27 @@ export class UserController {
   }
 
   @Public()
-  @Patch('/update/pw')
-  @ApiOperation({ summary: '비밀번호 수정' })
+  @Get('/reset/valid/:token')
+  @ApiOperation({ summary: '리셋 토큰 유효기간 검증' })
   @ApiResponse({
     status: 200,
-    description: '비밀번호 수정 성공',
+    description: '리셋 토큰 유효',
   })
-  async updatePw(@Body() data: object, @Res() res: Response) {
-    const result = await this.userService.updatePw(data);
-    if (result) {
-      return res.status(HttpStatus.OK).json({ message: '비밀번호 수정 성공' });
-    }
+  async validResetToken(@Param('token') resetToken: string) {
+    const response = await this.userService.validResetToken(resetToken);
+    return response;
+  }
+
+  @Public()
+  @Patch('/reset/password')
+  @ApiOperation({ summary: '비밀번호 재설정' })
+  @ApiResponse({
+    status: 200,
+    description: '비밀번호 재설정 성공',
+  })
+  async resetPassword(@Body() data: object) {
+    const response = await this.userService.resetPassword(data);
+    return response;
   }
 
   @Delete('/')

@@ -1,11 +1,11 @@
-import { Body, Controller, HttpStatus, Post, Get, Req, Res, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Request, Response } from 'express';
+import { GetCurrentUser, Public } from '../common/decorators';
+import { RtGuard } from '../common/guards';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { Request, Response } from 'express';
-import { RtGuard } from '../common/guards';
-import { GetCurrentUser, Public } from '../common/decorators';
-import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('/api/auth')
@@ -69,7 +69,13 @@ export class AuthController {
     description: '토큰 리프레시',
   })
   async refreshTokens(@GetCurrentUser() user, @Res() res: Response) {
-    const { accessToken, refreshToken } = await this.authService.refresh(user.id, user.refreshToken);
+    const { accessToken, refreshToken, msg } = await this.authService.refresh(user.id, user.refreshToken);
+
+    if (msg === 'delete token') {
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+      return res.status(HttpStatus.OK).json({ message: '토큰 만료' });
+    }
 
     this.setCookies(accessToken, refreshToken, res);
 

@@ -169,7 +169,7 @@ export class AuthService {
     const validateRt = await this.validateRefrshToken(userId, rt);
 
     if (!validateRt) {
-      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+      return { msg: 'delete token' };
     }
 
     const payload: JwtPayloadDto = {

@@ -2,6 +2,8 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
+import Redis from 'ioredis';
+import * as jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import { ActivityLog } from 'src/entity/activity-log.entity';
 import { ActivityType } from 'src/entity/activity-type.entity';
@@ -17,8 +19,6 @@ import { UserCreateDto } from './dto/user-create.dto';
 import { UserDeleteeDto } from './dto/user-delete.dto';
 import { UserDuplicDto } from './dto/user-duplic.dto';
 import { UserInfoGetDto } from './dto/userinfo-get.dto';
-import Redis from 'ioredis';
-import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
@@ -238,7 +238,7 @@ export class UserService {
     const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
 
     const match = await bcrypt.compare(password, user.password);
-    if (match) {
+    if (!match) {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
 
@@ -262,7 +262,11 @@ export class UserService {
 
     const target = email;
     const resetToken: string = jwt.sign({ email: email }, process.env.JWT_KEY, { issuer: process.env.JWT_ISSUER, algorithm: process.env.JWT_ALGORITHM });
-    this.redis.set(`${email}_reset_password`, resetToken, 'EX', 10800);
+    const userInfo = {
+      userId: user.id,
+      email: user.user_id,
+    };
+    this.redis.set(resetToken, JSON.stringify(userInfo), 'EX', 600);
 
     let emailTemplate = `
       <html>
@@ -306,24 +310,36 @@ export class UserService {
     });
     return user.user_id;
   }
-  async resetPassword() {}
 
-  async updatePw(data) {
-    const { id, field, value } = data;
-    let user = await this.userRepository.findOneBy({
-      user_id: id,
-    });
+  async validResetToken(resetToken: string) {
+    const userInfo = await this.redis.get(resetToken);
+    if (!userInfo) {
+      return { valid: false };
+    }
+    return { valid: true };
+  }
+
+  async resetPassword(data) {
+    const { resetToken, password } = data;
+
+    const userInfo = await this.redis.get(resetToken);
+    if (!userInfo) {
+      throw new HttpException('NOT_FOUND_TOKEN', HttpStatus.NOT_FOUND);
+    }
+    const { userId, email } = JSON.parse(userInfo);
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
+
     const salt = bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
-    const hashPw = bcrypt.hashSync(value, salt);
+    const hashPw = bcrypt.hashSync(password, salt);
 
     user.password = hashPw;
     user.modified_date = new Date();
     try {
       await this.userRepository.save(user);
-      return true;
+      return { success: true };
     } catch (error) {
       console.log(error);
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
