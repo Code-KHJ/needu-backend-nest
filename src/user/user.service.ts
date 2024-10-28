@@ -266,7 +266,7 @@ export class UserService {
       userId: user.id,
       email: user.user_id,
     };
-    this.redis.set(resetToken, JSON.stringify(userInfo), 'EX', 600);
+    this.redis.set(resetToken, JSON.stringify(userInfo), 'EX', 10800);
 
     let emailTemplate = `
       <html>
