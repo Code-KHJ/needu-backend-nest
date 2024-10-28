@@ -141,12 +141,12 @@ export class CommunityService {
     if (topicQuery > 0) {
       queryBuilder.andWhere('p.topic_id = :topicId', { topicId: topicQuery });
     }
-    queryBuilder.andWhere('(p.title LIKE :search OR p.content LIKE :search OR u.nickname LIKE :search)', { search: `%${search}%` }).groupBy('p.id');
+    queryBuilder.andWhere('(p.title LIKE :search OR p.content LIKE :search OR u.nickname LIKE :search)', { search: `%${search}%` });
 
-    const postList = await queryBuilder.orderBy(orderQuery, 'DESC').addOrderBy('p.created_at', 'DESC').take(take).skip(skip).getRawMany();
+    const postList = await queryBuilder.groupBy('p.id').orderBy(orderQuery, 'DESC').addOrderBy('p.created_at', 'DESC').offset(skip).limit(take).getRawMany();
 
-    const totalCount = await queryBuilder.getRawMany();
-    const totalPages = Math.ceil(totalCount.length / take);
+    const totalCount = await queryBuilder.getCount();
+    const totalPages = Math.ceil(totalCount / take);
 
     const result: PostsGetResponseDto[] = [];
     for (const post of postList) {
