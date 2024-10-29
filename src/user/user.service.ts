@@ -415,6 +415,20 @@ export class UserService {
     return userInfo;
   }
 
+  async getUserInfoForPublic(nickname: string) {
+    const user = await this.userRepository.findOne({ where: { nickname: nickname } });
+    if (!user) {
+      throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    const result = {
+      id: user.id,
+      nickname: user.nickname,
+      profile: user.profile_image,
+      point: user.activity_points,
+    };
+    return result;
+  }
+
   async getPointLog(userId: number) {
     const activityType = await this.activityTypeRepository.find({ select: { id: true, type: true } });
 

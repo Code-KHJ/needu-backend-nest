@@ -157,6 +157,18 @@ export class UserController {
   }
 
   @Public()
+  @Get('/public/:nickname')
+  @ApiOperation({ summary: '타인이 유저 정보 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '타인이 유저 정보 조회',
+  })
+  async getUserInfoForPublic(@Param('nickname') nickname: string) {
+    const response = await this.userService.getUserInfoForPublic(nickname);
+    return response;
+  }
+
+  @Public()
   @Post('/find/user')
   @ApiOperation({ summary: '유저 정보 찾기' })
   @ApiResponse({
