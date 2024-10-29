@@ -535,6 +535,11 @@ export class CorpService {
     const today = new Date().toLocaleDateString();
     const redisKey = `${today} HotCorpList`;
     const corpList = await this.redis.get(redisKey);
+    if (!corpList) {
+      await this.setHotList();
+      const corpList = await this.redis.get(redisKey);
+      return JSON.parse(corpList);
+    }
     return JSON.parse(corpList);
   }
 }
