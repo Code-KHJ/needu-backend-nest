@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Corp } from '../entity/corp.entity';
-import { FindManyOptions, Like, Repository } from 'typeorm';
+import { FindManyOptions, LessThan, Like, MoreThan, Repository } from 'typeorm';
 import { CorpsGetDto } from './dto/corps-get.dto';
 import { CorpsGetResponseDto } from './dto/corps-get-response.dto';
 import { CorpCreateDto } from './dto/corp-create.dto';
@@ -11,6 +11,8 @@ import { Review } from 'src/entity/review.entity';
 import { CorpsGetWorkingResponseDto } from './dto/corps-get-working-response.dto';
 import { CorpsGetTrainingDto } from './dto/corps-get-training.dto';
 import { CorpsGetTrainingResponseDto } from './dto/corps-get-traininging-response.dto';
+import Redis from 'ioredis';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class CorpService {
@@ -19,6 +21,8 @@ export class CorpService {
     private readonly corpRepository: Repository<Corp>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
+    @Inject('REDIS_CLIENT')
+    private readonly redis: Redis,
   ) {}
 
   async findAll(corpsGetDto: CorpsGetDto) {
@@ -427,5 +431,110 @@ export class CorpService {
     corp.hashtag = hashtags;
 
     return await this.corpRepository.save(corp);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async setHotList() {
+    const corpsWithWorking = await this.corpRepository.find({
+      where: { reviews: MoreThan(0) },
+      relations: ['reviews', 'reviews_training'],
+    });
+    const corpsWithTraining = await this.corpRepository.find({
+      where: { reviews_training: MoreThan(0) },
+      relations: ['reviews', 'reviews_training'],
+    });
+    const combinedCorps = [...corpsWithTraining, ...corpsWithWorking];
+    const uniqueCorps = combinedCorps.filter((corp, index, self) => index === self.findIndex(c => c.id === corp.id)).slice(0, 10);
+    const corpList = uniqueCorps.map(corp => {
+      const averageScores = {
+        workinkg: {
+          total_score: 0,
+          growth_score: 0,
+          leadership_score: 0,
+          reward_score: 0,
+          worth_score: 0,
+          culture_score: 0,
+          worklife_score: 0,
+        },
+        training: {
+          total_score: 0,
+          growth_score: 0,
+          worth_score: 0,
+          recommend_score: 0,
+          supervisor_score: 0,
+        },
+      };
+      corp.reviews.forEach(review => {
+        averageScores.workinkg.total_score += Number(review.total_score);
+        averageScores.workinkg.growth_score += Number(review.growth_score);
+        averageScores.workinkg.leadership_score += Number(review.leadership_score);
+        averageScores.workinkg.reward_score += Number(review.reward_score);
+        averageScores.workinkg.worth_score += Number(review.worth_score);
+        averageScores.workinkg.culture_score += Number(review.culture_score);
+        averageScores.workinkg.worklife_score += Number(review.worklife_score);
+      });
+      corp.reviews_training.forEach(review => {
+        averageScores.training.total_score += Number(review.total_score);
+        averageScores.training.growth_score += Number(review.growth_score);
+        averageScores.training.recommend_score += Number(review.recommend_score);
+        averageScores.training.supervisor_score += Number(review.supervisor_score);
+        averageScores.training.worth_score += Number(review.worth_score);
+      });
+
+      for (const key in averageScores.workinkg) {
+        averageScores.workinkg[key] /= corp.reviews.length;
+      }
+      for (const key in averageScores.training) {
+        averageScores.training[key] /= corp.reviews_training.length;
+      }
+
+      let description = '오늘 떠오르고 있는';
+      if (averageScores.workinkg.total_score === 5) {
+        description = '전현직 종사자가 인정하는 5점 만점인 기관';
+      } else if (averageScores.training.total_score === 5) {
+        description = '실습생 만족도가 5점 만점인 기관';
+      } else if (averageScores.workinkg.total_score >= 4) {
+        description = '전현직 종사자가 추천하는 기관';
+      } else if (averageScores.training.total_score >= 4) {
+        description = '실습생이 만족하는하는 기관';
+      } else if (averageScores.workinkg.growth_score >= 4 || averageScores.training.growth_score >= 4) {
+        description = '성장하기 좋은 환경의 기관';
+      } else if (averageScores.workinkg.worth_score >= 4 || averageScores.training.worth_score >= 4) {
+        description = '일 가치감을 느끼는 기관';
+      } else if (averageScores.workinkg.leadership_score >= 4) {
+        description = '리더십이 훌륭한 기관';
+      } else if (averageScores.workinkg.reward_score >= 4) {
+        description = '급여 및 복지가 좋은 기관';
+      } else if (averageScores.workinkg.culture_score >= 4) {
+        description = '조직문화가 좋은 기관';
+      } else if (averageScores.workinkg.worklife_score >= 4) {
+        description = '워라벨이 좋은 기관';
+      } else if (averageScores.training.recommend_score >= 4) {
+        description = '실습생이 추천하는 기관';
+      } else if (averageScores.training.supervisor_score >= 4) {
+        description = '실습생피셜 수퍼바이징이 좋은 기관';
+      } else if (corp.reviews.length >= 5) {
+        description = '전현직자 리뷰가 많은 기관';
+      } else if (corp.reviews_training.length >= 5) {
+        description = '실습생 리뷰가 많은 기관';
+      }
+      const review = {
+        id: corp.id,
+        corpname: corp.corp_name,
+        description: description,
+        score: averageScores,
+        cnt: { working: corp.reviews.length, training: corp.reviews_training.length },
+      };
+      return review;
+    });
+    const today = new Date().toLocaleDateString();
+    const redisKey = `${today} HotCorpList`;
+    this.redis.set(redisKey, JSON.stringify(corpList), 'EX', 86400);
+  }
+  async getHotList() {
+    const today = new Date().toLocaleDateString();
+    const redisKey = `${today} HotCorpList`;
+    const corpList = await this.redis.get(redisKey);
+    return JSON.parse(corpList);
   }
 }

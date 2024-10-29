@@ -10,6 +10,7 @@ import { Roles } from '../common/decorators/role.decorator';
 import { Public } from '../common/decorators';
 import { CorpsGetWorkingDto } from './dto/corps-get-working.dto';
 import { CorpsGetTrainingDto } from './dto/corps-get-training.dto';
+import { response } from 'express';
 
 @ApiTags('Corp')
 @Controller('/api/corp')
@@ -119,5 +120,17 @@ export class CorpController {
   })
   delete(@Param('name') name: string) {
     return this.corpService.delete(name);
+  }
+
+  @Public()
+  @Get('/hotlist')
+  @ApiOperation({ summary: '일별 hot 기관 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '일별 hot 기관 조회',
+  })
+  async getHotList() {
+    const response = await this.corpService.getHotList();
+    return response;
   }
 }

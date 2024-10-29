@@ -17,6 +17,7 @@ import { ReviewsGetResponseDto } from './dto/review-get-response.dto';
 import { LikeDto } from './dto/review-like.dto';
 import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewsTrainingGetResponseDto } from './dto/review-training-get-response.dto';
+import { CommonReviewsGetResponseDto } from './dto/common-review-get-response.dto';
 
 @Injectable()
 export class ReviewService {
@@ -131,6 +132,22 @@ export class ReviewService {
     const reviewsDto = reviews.map(review => new ReviewsGetResponseDto(review));
 
     return reviewsDto;
+  }
+
+  async getWorkingReviewOrderByRecent() {
+    const reviews = await this.reviewRepository.find({
+      where: [
+        { is_del: false, blind: 1 },
+        { is_del: IsNull(), blind: 1 },
+      ],
+      relations: ['corp'],
+      order: {
+        created_date: 'DESC',
+      },
+      take: 10,
+    });
+    const result = reviews.map(review => new CommonReviewsGetResponseDto({ ...review, type: '전현직' }));
+    return result;
   }
 
   // 리뷰 no 으로 전현직 리뷰 조회
@@ -336,6 +353,22 @@ export class ReviewService {
     const reviewsDto = reviews.map(review => new ReviewsTrainingGetResponseDto(review));
 
     return reviewsDto;
+  }
+
+  async getTrainingReviewOrderByRecent() {
+    const reviews = await this.reviewTrainingRepository.find({
+      where: [
+        { is_del: false, blind: 1 },
+        { is_del: IsNull(), blind: 1 },
+      ],
+      relations: ['corp'],
+      order: {
+        created_date: 'DESC',
+      },
+      take: 10,
+    });
+    const result = reviews.map(review => new CommonReviewsGetResponseDto({ ...review, type: '실습' }));
+    return result;
   }
 
   // 리뷰 no 으로 실습 리뷰 조회

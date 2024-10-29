@@ -48,6 +48,18 @@ export class ReviewController {
   }
 
   @Public()
+  @Get('/working/recent')
+  @ApiOperation({ summary: '전현직자 리뷰 최신순 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '전현직자 리뷰 최신순 조회',
+  })
+  async getWorkingReviewOrderByRecent() {
+    const response = await this.reviewService.getWorkingReviewOrderByRecent();
+    return response;
+  }
+
+  @Public()
   @Get('/working/:name')
   @ApiOperation({ summary: '전현직자 리뷰 조회 by 기관명' })
   @ApiResponse({
@@ -135,6 +147,18 @@ export class ReviewController {
   async getTrainingReviewsByUser(@GetCurrentUser('user_id') userId: string) {
     const response = await this.reviewService.findTrainingReviewsByUser(userId);
 
+    return response;
+  }
+
+  @Public()
+  @Get('/training/recent')
+  @ApiOperation({ summary: '실습 리뷰 최신순 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '실습 리뷰 최신순 조회',
+  })
+  async getTrainingReviewOrderByRecent() {
+    const response = await this.reviewService.getTrainingReviewOrderByRecent();
     return response;
   }
 
