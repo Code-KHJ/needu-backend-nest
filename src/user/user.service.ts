@@ -421,7 +421,6 @@ export class UserService {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
     const result = {
-      id: user.id,
       nickname: user.nickname,
       profile: user.profile_image,
       point: user.activity_points,

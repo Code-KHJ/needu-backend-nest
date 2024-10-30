@@ -57,6 +57,19 @@ export class CommunityController {
   }
 
   @Public()
+  @Get('/post/list/nickname/:nickname')
+  @ApiOperation({ summary: '게시글 목록 조회 by 유저' })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 목록 조회 성공',
+  })
+  async getPostAndCommentByNickname(@Param('nickname') nickname: string) {
+    const response = await this.communityService.getPostAndCommentByNickname(nickname);
+
+    return response;
+  }
+
+  @Public()
   @Get('/post/:id')
   @ApiOperation({ summary: '게시글 조회' })
   @ApiResponse({

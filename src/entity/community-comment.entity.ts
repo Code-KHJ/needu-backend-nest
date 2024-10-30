@@ -1,9 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { CommunityPost } from './community-post.entity';
 import { IsBoolean, isDateString, IsDateString, isNumber, IsNumber, IsOptional, IsString } from 'class-validator';
 import { User } from './user.entity';
 import { BlindType } from './blind-type.entity';
 import { CommunityCommentLike } from './community-comment-like.entity';
+import { CommunityCommentAccepted } from './community_comment_accepted.entity';
 
 @Entity({ name: 'community_comment' })
 export class CommunityComment {
@@ -57,4 +58,7 @@ export class CommunityComment {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
+
+  @OneToOne(() => CommunityCommentAccepted, accepted => accepted.comment)
+  accepted: CommunityCommentAccepted;
 }

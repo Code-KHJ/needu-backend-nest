@@ -21,6 +21,7 @@ import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post
 import { PostLikeDto } from './dto/post-like.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
+import { PostCommentGetResponseDto } from './dto/post-comment-get.dto';
 
 @Injectable()
 export class CommunityService {
@@ -171,6 +172,34 @@ export class CommunityService {
 
     const postList = posts.map(post => new PostGetResponseDto(post));
     return postList;
+  }
+
+  async getPostAndCommentByNickname(nickname: string) {
+    const user = await this.userRepository.findOne({ where: { nickname: nickname } });
+    if (!user) {
+      throw new HttpException('NOT_FOUND_USER', HttpStatus.NOT_FOUND);
+    }
+    const posts = await this.communityPostRepository.find({
+      where: [
+        { user_id: user.id, is_del: false, blind: 1 },
+        { user_id: user.id, is_del: IsNull(), blind: 1 },
+      ],
+      relations: ['likes', 'comments', 'wb'],
+    });
+
+    const comments = await this.communityCommentRepository.find({
+      where: [
+        { user_id: user.id, is_del: false, blind: 1 },
+        { user_id: user.id, is_del: IsNull(), blind: 1 },
+      ],
+      relations: ['likes', 'post', 'accepted'],
+    });
+
+    const postList = posts.map(post => new PostCommentGetResponseDto({ ...post, type: 'post' }));
+    const commentList = comments.map(comment => new PostCommentGetResponseDto({ ...comment, type: 'comment' }));
+
+    const result = [...postList, ...commentList];
+    return result;
   }
 
   async updateView(postId: number) {
