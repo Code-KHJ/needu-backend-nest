@@ -16,12 +16,12 @@ import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommentGetResponseDto } from './dto/comment-get.dto';
 import { CommentLikeDto } from './dto/comment-like.dto';
+import { PostCommentGetResponseDto } from './dto/post-comment-get.dto';
 import { PostCreateDto } from './dto/post-create.dto';
 import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post-get.dto';
 import { PostLikeDto } from './dto/post-like.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
-import { PostCommentGetResponseDto } from './dto/post-comment-get.dto';
 
 @Injectable()
 export class CommunityService {
@@ -184,7 +184,7 @@ export class CommunityService {
         { user_id: user.id, is_del: false, blind: 1 },
         { user_id: user.id, is_del: IsNull(), blind: 1 },
       ],
-      relations: ['likes', 'comments', 'wb'],
+      relations: ['likes', 'comments', 'wb', 'topic'],
     });
 
     const comments = await this.communityCommentRepository.find({

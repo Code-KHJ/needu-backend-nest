@@ -3,6 +3,7 @@ export class PostCommentGetResponseDto {
   id: number;
   title: string;
   content: string;
+  post_type: number;
   created_at: Date;
   view: number;
   like_cnt: number;
@@ -21,6 +22,7 @@ export class PostCommentGetResponseDto {
     this.id = item.id;
     this.title = item.title;
     this.content = item.content;
+    this.post_type = item.topic?.type.id;
     this.created_at = item.created_at;
     this.view = item.view;
     this.like_cnt = item.likes?.filter(like => like.type === 1).length;
