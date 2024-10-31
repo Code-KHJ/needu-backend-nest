@@ -1,7 +1,7 @@
 import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { Review } from './review.entity';
 import { ReviewTraning } from './review-training.entity';
+import { Review } from './review.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -81,6 +81,7 @@ export class User {
   profile_image: string | null;
 
   @Column({ default: 0 })
+  @IsOptional()
   @IsNumber()
   activity_points: number;
 
