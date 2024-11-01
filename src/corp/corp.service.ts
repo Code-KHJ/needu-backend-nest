@@ -489,34 +489,49 @@ export class CorpService {
       }
 
       let description = '오늘 떠오르고 있는';
+      let type = 'working';
       if (averageScores.workinkg.total_score === 5) {
         description = '전현직 종사자가 인정하는 5점 만점인 기관';
+        type = 'working';
       } else if (averageScores.training.total_score === 5) {
         description = '실습생 만족도가 5점 만점인 기관';
+        type = 'training';
       } else if (averageScores.workinkg.total_score >= 4) {
         description = '전현직 종사자가 추천하는 기관';
+        type = 'working';
       } else if (averageScores.training.total_score >= 4) {
         description = '실습생이 만족하는하는 기관';
+        type = 'training';
       } else if (averageScores.workinkg.growth_score >= 4 || averageScores.training.growth_score >= 4) {
         description = '성장하기 좋은 환경의 기관';
+        type = 'working';
       } else if (averageScores.workinkg.worth_score >= 4 || averageScores.training.worth_score >= 4) {
         description = '일 가치감을 느끼는 기관';
+        type = 'working';
       } else if (averageScores.workinkg.leadership_score >= 4) {
         description = '리더십이 훌륭한 기관';
+        type = 'working';
       } else if (averageScores.workinkg.reward_score >= 4) {
         description = '급여 및 복지가 좋은 기관';
+        type = 'working';
       } else if (averageScores.workinkg.culture_score >= 4) {
         description = '조직문화가 좋은 기관';
+        type = 'working';
       } else if (averageScores.workinkg.worklife_score >= 4) {
         description = '워라벨이 좋은 기관';
+        type = 'working';
       } else if (averageScores.training.recommend_score >= 4) {
         description = '실습생이 추천하는 기관';
+        type = 'training';
       } else if (averageScores.training.supervisor_score >= 4) {
         description = '실습생피셜 수퍼바이징이 좋은 기관';
+        type = 'training';
       } else if (corp.reviews.length >= 5) {
         description = '전현직자 리뷰가 많은 기관';
+        type = 'working';
       } else if (corp.reviews_training.length >= 5) {
         description = '실습생 리뷰가 많은 기관';
+        type = 'training';
       }
       const review = {
         id: corp.id,
@@ -524,6 +539,7 @@ export class CorpService {
         description: description,
         score: averageScores,
         cnt: { working: corp.reviews.length, training: corp.reviews_training.length },
+        type: type,
       };
       return review;
     });
