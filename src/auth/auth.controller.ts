@@ -104,10 +104,15 @@ export class AuthController {
     description: '카카오 리다이렉트 페이지',
   })
   async kakaoLoginCallback(@Req() req: Request & { user?: any }, @Res() res: Response) {
-    const { id, nickname, accessToken, refreshToken } = await this.authService.kakaoLogin(req.user);
+    const { id, nickname, merge, accessToken, refreshToken } = await this.authService.kakaoLogin(req.user);
     this.setCookies(accessToken, refreshToken, res);
 
     const redirectUrl = process.env.SSO_REDIRECT_URL;
+    if (merge) {
+      res.cookie('alertMsg', '기존에 가입된 이메일입니다. 통합된 계정으로 사용합니다.', { httpOnly: false });
+    } else {
+      res.cookie('alertMsg', `${nickname}님 환영합니다.`, { httpOnly: false });
+    }
     return res.redirect(HttpStatus.FOUND, redirectUrl);
   }
 
@@ -128,10 +133,15 @@ export class AuthController {
     description: '구글 리다이렉트 페이지',
   })
   async googleLoginCallback(@Req() req: Request & { user?: any }, @Res() res: Response) {
-    const { id, nickname, accessToken, refreshToken } = await this.authService.googleLogin(req.user);
+    const { id, nickname, merge, accessToken, refreshToken } = await this.authService.googleLogin(req.user);
     this.setCookies(accessToken, refreshToken, res);
 
     const redirectUrl = process.env.SSO_REDIRECT_URL;
+    if (merge) {
+      res.cookie('alertMsg', '기존에 가입된 이메일입니다. 통합된 계정으로 사용합니다.', { httpOnly: false });
+    } else {
+      res.cookie('alertMsg', `${nickname}님 환영합니다.`, { httpOnly: false });
+    }
     return res.redirect(HttpStatus.FOUND, redirectUrl);
   }
 }

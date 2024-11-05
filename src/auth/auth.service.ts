@@ -65,7 +65,7 @@ export class AuthService {
   async googleLogin(googleLoginDto: GoogleLoginDto) {
     const { id, nickname } = googleLoginDto;
     let user = await this.userRepository.findOne({ where: { user_id: id } });
-
+    let merge = false;
     if (!user) {
       user = this.userRepository.create({
         user_id: id,
@@ -83,6 +83,7 @@ export class AuthService {
     }
     if (!user.google) {
       user.google = true;
+      merge = true;
     }
     const payload: JwtPayloadDto = {
       user_id: id,
@@ -100,6 +101,7 @@ export class AuthService {
     const result = {
       id: user.user_id,
       nickname: user.nickname,
+      merge: merge,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
@@ -111,6 +113,7 @@ export class AuthService {
     const { id, nickname, phonenumber, marketing } = kakaoLoginDto;
 
     let user = await this.userRepository.findOne({ where: { user_id: id } });
+    let merge = false;
     if (!user) {
       user = this.userRepository.create({
         user_id: id,
@@ -128,6 +131,7 @@ export class AuthService {
     }
     if (!user.kakao) {
       user.kakao = true;
+      merge = true;
     }
     const payload: JwtPayloadDto = {
       user_id: id,
@@ -145,6 +149,7 @@ export class AuthService {
     const result = {
       id: user.user_id,
       nickname: user.nickname,
+      merge: merge,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
