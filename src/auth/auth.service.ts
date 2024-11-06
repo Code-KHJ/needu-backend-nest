@@ -43,9 +43,10 @@ export class AuthService {
 
     const { accessToken, refreshToken } = await this.getTokens(payload);
 
-    const current = new Date().toISOString().slice(0, 10);
-    user.login_date = new Date(current);
-    await this.userRepository.save(user);
+    await this.userRepository.update(user.id, {
+      login_date: new Date(),
+      modified_date: () => 'modified_date',
+    });
 
     this.sharedService.addPoint(user.id, 2);
 

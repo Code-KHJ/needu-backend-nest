@@ -190,18 +190,17 @@ export class UserService {
 
   async findUser(data) {
     const { field, value } = data;
-    console.log(data);
     const users = await this.userRepository.find({ where: { [field]: value } });
     if (!users) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    console.log(users);
     const result = users.map(user => ({
       user_id: user.user_id,
       nickname: user.nickname,
       created_date: user.created_date,
+      kakao: user.kakao,
+      google: user.google,
     }));
-    console.log(result);
     return result;
   }
 
