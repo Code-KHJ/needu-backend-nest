@@ -488,55 +488,61 @@ export class CorpService {
         averageScores.training[key] /= corp.reviews_training.length;
       }
 
-      let description = '오늘 떠오르고 있는';
+      let criteria = 'default';
       let type = 'working';
       if (averageScores.workinkg.total_score === 5) {
-        description = '전현직 종사자가 인정하는 5점 만점인 기관';
+        criteria = 'working5';
         type = 'working';
       } else if (averageScores.training.total_score === 5) {
-        description = '실습생 만족도가 5점 만점인 기관';
+        criteria = 'training5';
         type = 'training';
       } else if (averageScores.workinkg.total_score >= 4) {
-        description = '전현직 종사자가 추천하는 기관';
+        criteria = 'working4';
         type = 'working';
       } else if (averageScores.training.total_score >= 4) {
-        description = '실습생이 만족하는하는 기관';
+        criteria = 'training4';
         type = 'training';
-      } else if (averageScores.workinkg.growth_score >= 4 || averageScores.training.growth_score >= 4) {
-        description = '성장하기 좋은 환경의 기관';
+      } else if (averageScores.workinkg.growth_score >= 4) {
+        criteria = 'growth';
         type = 'working';
-      } else if (averageScores.workinkg.worth_score >= 4 || averageScores.training.worth_score >= 4) {
-        description = '일 가치감을 느끼는 기관';
+      } else if (averageScores.training.growth_score >= 4) {
+        criteria = 'growth';
+        type = 'training';
+      } else if (averageScores.workinkg.worth_score >= 4) {
+        criteria = 'worth';
         type = 'working';
+      } else if (averageScores.training.worth_score >= 4) {
+        criteria = 'worth';
+        type = 'training';
       } else if (averageScores.workinkg.leadership_score >= 4) {
-        description = '리더십이 훌륭한 기관';
+        criteria = 'leadership';
         type = 'working';
       } else if (averageScores.workinkg.reward_score >= 4) {
-        description = '급여 및 복지가 좋은 기관';
+        criteria = 'reward';
         type = 'working';
       } else if (averageScores.workinkg.culture_score >= 4) {
-        description = '조직문화가 좋은 기관';
+        criteria = 'culture';
         type = 'working';
       } else if (averageScores.workinkg.worklife_score >= 4) {
-        description = '워라벨이 좋은 기관';
+        criteria = 'worklife';
         type = 'working';
       } else if (averageScores.training.recommend_score >= 4) {
-        description = '실습생이 추천하는 기관';
+        criteria = 'recommend';
         type = 'training';
       } else if (averageScores.training.supervisor_score >= 4) {
-        description = '실습생피셜 수퍼바이징이 좋은 기관';
+        criteria = 'supervisor';
         type = 'training';
       } else if (corp.reviews.length >= 5) {
-        description = '전현직자 리뷰가 많은 기관';
+        criteria = 'workingReviews';
         type = 'working';
       } else if (corp.reviews_training.length >= 5) {
-        description = '실습생 리뷰가 많은 기관';
+        criteria = 'trainingReviews';
         type = 'training';
       }
       const review = {
         id: corp.id,
         corpname: corp.corp_name,
-        description: description,
+        criteria: criteria,
         score: averageScores,
         cnt: { working: corp.reviews.length, training: corp.reviews_training.length },
         type: type,
