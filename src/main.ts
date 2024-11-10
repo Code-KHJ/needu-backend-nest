@@ -28,7 +28,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   app.enableCors({
-    origin: ['http://localhost:8000', 'http://localhost:5173', 'https://needu.site', 'http://needu.site'],
+    origin: ['http://localhost:8000', 'http://localhost:5173', 'https://needu.site', 'http://needu.site', 'http://www.needu.site', 'https://www.needu.site'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
