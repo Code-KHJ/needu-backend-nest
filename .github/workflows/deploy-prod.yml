@@ -1,0 +1,29 @@
+name: Deploy to REMOTE on Prod Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run SSH commands on REMOTE
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.REMOTE_PROD_HOST }}
+          username: ${{ secrets.REMOTE_PROD_USER }}
+          key: ${{ secrets.REMOTE_PRIVATE_PROD_KEY }}
+          port: ${{ secrets.REMOTE_PROD_PORT }}
+          script: |
+            cd /home/ubuntu/needu_new/needu-backend-nest/
+            git pull origin main
+            npm i --force
+            npm run build
+            pm2 reload needu-backend
