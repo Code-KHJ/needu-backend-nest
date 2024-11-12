@@ -1,0 +1,29 @@
+name: Deploy to REMOTE on Staging Push
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run SSH commands on REMOTE
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.REMOTE_STAGING_HOST }}
+          username: ${{ secrets.REMOTE_STAGING_USER }}
+          key: ${{ secrets.REMOTE_PRIVATE_STAGING_KEY }}
+          port: ${{ secrets.REMOTE_STAGING_PORT }}
+          script: |
+            cd /home/ubuntu/needu_new/needu-backend-nest/
+            sudo git pull origin staging
+            sudo npm i --force
+            sudo npm run build
+            pm2 reload main
