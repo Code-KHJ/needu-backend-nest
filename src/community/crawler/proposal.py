@@ -168,7 +168,7 @@ def main():
         return
 
     # Redis에 저장
-    today = datetime.datetime.now().strftime('%m/%d/%Y')
+    today = datetime.datetime.now().strftime('%-m/%-d/%Y')
     redis_key = f"{today} Proposal"
     save_to_redis(redis_key, total_data)
 

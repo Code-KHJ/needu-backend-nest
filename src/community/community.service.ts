@@ -619,10 +619,11 @@ export class CommunityService {
       const yRedisKey = `${yday} Proposal`;
       const yRawData = await this.redis.get(yRedisKey);
       const yProposalData = JSON.parse(yRawData);
-
-      if (proposalData['moguem'].length === 0 || proposalData['moguem'][0] !== yProposalData['moguem'][0]) {
-        console.log('신규 데이터가 없습니다.');
-        return;
+      if (yProposalData) {
+        if (proposalData['moguem'].length === 0 || proposalData['moguem'][0] !== yProposalData['moguem'][0]) {
+          console.log('신규 데이터가 없습니다.');
+          return;
+        }
       }
     }
 
@@ -644,7 +645,7 @@ export class CommunityService {
         const values = proposalData[key];
         return values
           .map(value => {
-            return `<li>[${value.writer}] ${value.title} (~${value.deadline})  <a href='${value.link}' target=_blank> 상세내용</a></li>`;
+            return `<li>[${value.writer}] ${value.title} (~${value.deadline})</br><a href='${value.link}' target=_blank> 상세내용</a></li>`;
           })
           .join('</br>');
       })
@@ -654,15 +655,18 @@ export class CommunityService {
       month: 'long',
       day: 'numeric',
     });
-    const title = `${date} 신규 공모사업`;
+    const title = `[공모사업] 새로 올라온 공모사업 리스트 ${date}`;
     const body = `
-<p>새롭게 올라온 공모사업 공유드립니다.</p></br>
-<ul>${content} ${moguemContent}</ul>`;
+<p>출근 루틴으로 조직 내부에서 모아보던 공모사업 정보입니다. 관심 있는 분들 계실 것 같아서 공유합니다.</p></br>
+<ul>${content} ${moguemContent}</ul></br>
+<p>이외에 공모사업을 많이하는 재단, 단체가 있다면 댓글로 알려주세요. 함께 정보를 취합해볼게요!</p>
+<p>공모사업 외에 도움이 될 만한 주제가 있다면 댓글로 제안해주셔도 좋습니다! &#x1F600;</p>
+`;
 
     const postDto = {
       title: title,
       topic_id: 1,
-      user_id: 1,
+      user_id: 554,
       html: body,
       markdown: body,
     };
