@@ -11,12 +11,13 @@ import { CommunityType } from 'src/entity/community-type.entity';
 import { CommunityWeeklyBest } from 'src/entity/community-weekly-best.entity';
 import { User } from 'src/entity/user.entity';
 import { multerOptionsFactory } from 'src/multer.options.factory';
+import { RedisModule } from 'src/redis/redis.module';
+import { SharedModule } from 'src/shared/shared.module';
+import { SharedService } from 'src/shared/shared.service';
 import { UtilService } from 'src/util/util.service';
 import { CommunityCommentAccepted } from './../entity/community_comment_accepted.entity';
 import { CommunityController } from './community.controller';
 import { CommunityService } from './community.service';
-import { SharedService } from 'src/shared/shared.service';
-import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SharedModule } from 'src/shared/shared.module';
       CommunityWeeklyBest,
       User,
     ]),
+    RedisModule,
     SharedModule,
   ],
   controllers: [CommunityController],

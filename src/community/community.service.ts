@@ -1,5 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
+import { execFile } from 'child_process';
+import Redis from 'ioredis';
 import Perspective from 'perspective-api-client';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
 import { CommunityComment } from 'src/entity/community-comment.entity';
@@ -44,6 +47,8 @@ export class CommunityService {
     private readonly userRepository: Repository<User>,
     private readonly utilService: UtilService,
     private readonly sharedService: SharedService,
+    @Inject('REDIS_CLIENT')
+    private readonly redis: Redis,
   ) {}
 
   async createPost(userId: number, postCreateDto: PostCreateDto) {
@@ -77,7 +82,7 @@ export class CommunityService {
 토픽 : ${savedPostForAlert.topic.topic}
 제목 : ${savedPostForAlert.title}
 본문 : ${savedPostForAlert.content}
-링크 : http://43.203.214.137/community/${savedPostForAlert.topic.type.id === 1 ? 'free' : 'question'}/${savedPost.id}
+링크 : ${process.env.HOST}/community/${savedPostForAlert.topic.type.id === 1 ? 'free' : 'question'}/${savedPost.id}
 `;
 
     this.utilService.slackWebHook('alert', slackMsg);
@@ -594,5 +599,94 @@ export class CommunityService {
       console.error(error);
       return true;
     }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  async writeDailyProposal() {
+    const today = new Date().toLocaleDateString();
+    const redisKey = `${today} Proposal`;
+    const rawData = await this.redis.get(redisKey);
+    const proposalData = JSON.parse(rawData);
+
+    const hasEmpty = Object.keys(proposalData)
+      .filter(key => key !== 'moguem')
+      .every(key => Array.isArray(proposalData[key]) && proposalData[key].length === 0);
+
+    if (hasEmpty) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yday = yesterday.toLocaleDateString();
+      const yRedisKey = `${yday} Proposal`;
+      const yRawData = await this.redis.get(yRedisKey);
+      const yProposalData = JSON.parse(yRawData);
+      if (yProposalData) {
+        if (proposalData['moguem'].length === 0 || proposalData['moguem'][0] !== yProposalData['moguem'][0]) {
+          console.log('신규 데이터가 없습니다.');
+          return;
+        }
+      }
+    }
+
+    const content = Object.keys(proposalData)
+      .filter(key => key !== 'moguem')
+      .map(key => {
+        const values = proposalData[key];
+        return values
+          .map(value => {
+            return `<li>[${value.writer}] ${value.title}  <a href='${value.link}' target=_blank> 상세내용</a></li>`;
+          })
+          .join('</br>');
+      })
+      .join('</br>');
+
+    const moguemContent = Object.keys(proposalData)
+      .filter(key => key === 'moguem')
+      .map(key => {
+        const values = proposalData[key];
+        return values
+          .map(value => {
+            return `<li>[${value.writer}] ${value.title} (~${value.deadline})</br><a href='${value.link}' target=_blank> 상세내용</a></li>`;
+          })
+          .join('</br>');
+      })
+      .join('</br>');
+
+    const date = new Date().toLocaleDateString('ko-KR', {
+      month: 'long',
+      day: 'numeric',
+    });
+    const title = `[공모사업] 새로 올라온 공모사업 리스트 ${date}`;
+    const body = `
+<p>출근 루틴으로 조직 내부에서 모아보던 공모사업 정보입니다. 관심 있는 분들 계실 것 같아서 공유합니다.</p></br>
+<ul>${content} ${moguemContent}</ul></br>
+<p>이외에 공모사업을 많이하는 재단, 단체가 있다면 댓글로 알려주세요. 함께 정보를 취합해볼게요!</p>
+<p>공모사업 외에 도움이 될 만한 주제가 있다면 댓글로 제안해주셔도 좋습니다! &#x1F600;</p>
+`;
+
+    const postDto = {
+      title: title,
+      topic_id: 1,
+      user_id: 554,
+      html: body,
+      markdown: body,
+    };
+    this.createPost(1, postDto);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_8AM)
+  async runCrawlerProposal(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      execFile('venv/bin/python', ['src/community/crawler/proposal.py'], (error, stdout, stderr) => {
+        if (error) {
+          reject(`Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          reject(`Error: ${stderr}`);
+          return;
+        }
+        resolve(stdout.trim());
+      });
+    });
   }
 }
