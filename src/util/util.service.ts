@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import nodemailer from 'nodemailer';
 
 @Injectable()
 export class UtilService {
@@ -26,6 +27,35 @@ export class UtilService {
       console.log('Slack response:', response.data); // 성공 시 응답 출력
     } catch (error) {
       console.error('Error Slack WebHook:', error); // 오류 처리
+    }
+  }
+
+  async sendEmail(subject: string, target: string, content: string) {
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+
+    let mailOptions = {
+      from: `needu`,
+      to: target,
+      subject: subject,
+      html: content,
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log('finish sending : ' + info.response);
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
     }
   }
 }

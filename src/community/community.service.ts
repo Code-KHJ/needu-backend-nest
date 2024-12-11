@@ -25,6 +25,7 @@ import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post
 import { PostLikeDto } from './dto/post-like.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
+import { promises as fs } from 'fs';
 
 @Injectable()
 export class CommunityService {
@@ -352,7 +353,8 @@ export class CommunityService {
     if (userId !== user_id) {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
-    const post = await this.communityPostRepository.findOne({ where: { id: post_id } });
+    const post = await this.communityPostRepository.findOne({ where: { id: post_id }, relations: ['user', 'topic'] });
+    const parentComment = await this.communityCommentRepository.findOne({ where: { id: parent_id }, relations: ['user'] });
     if (!post) {
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
@@ -369,6 +371,25 @@ export class CommunityService {
     }
 
     this.sharedService.addPoint(userId, 5, `comment${savedComment.id}`);
+
+    const host = process.env.HOST;
+    const originUrl = `${host}/community/${post.topic.type.id == 1 ? 'free' : 'question'}/${post.id}`;
+    //sendEmail
+    if (parent_id && parentComment.user_id !== user_id) {
+      let subject = `[Needu] ${parentComment.user.nickname}에게 새로운 댓글이 달렸습니다.`;
+      let target = parentComment.user.user_id;
+      const templatePath = './src/community/template/newComment.html';
+      const rawTemplate = await fs.readFile(templatePath, 'utf-8');
+      let emailTemplate = rawTemplate.replaceAll('{{userName}}', parentComment.user.nickname).replace('{{type}}', '댓글').replace('{{originUrl}}', originUrl);
+      await this.utilService.sendEmail(subject, target, emailTemplate);
+    } else if (post.user_id !== user_id) {
+      let subject = `[Needu] ${post.user.nickname}에게 새로운 댓글이 달렸습니다.`;
+      let target = post.user.user_id;
+      const templatePath = './src/community/template/newComment.html';
+      const rawTemplate = await fs.readFile(templatePath, 'utf-8');
+      let emailTemplate = rawTemplate.replaceAll('{{userName}}', post.user.nickname).replace('{{type}}', '게시물').replace('{{originUrl}}', originUrl);
+      await this.utilService.sendEmail(subject, target, emailTemplate);
+    }
 
     return { success: true, comment: savedComment };
   }
