@@ -43,7 +43,7 @@ export class UtilService {
     });
 
     let mailOptions = {
-      from: `니쥬(NeedU) <needu.sw@gmail.com>`,
+      from: `"니쥬(NeedU)" <needu.sw@gmail.com>`,
       to: target,
       subject: subject,
       html: content,
