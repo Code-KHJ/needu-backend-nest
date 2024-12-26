@@ -93,6 +93,7 @@ export class UserService {
   async verifyEmail(email) {
     let target = email.email;
     let authNum = Math.random().toString().substring(2, 8);
+    let subject = '[Needu] 본인 확인을 위한 인증번호입니다.';
     let emailTemplate = `
       <html>
       <body>
@@ -107,32 +108,11 @@ export class UserService {
       </html>
     `;
 
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.NODEMAILER_USER,
-        pass: process.env.NODEMAILER_PASS,
-      },
-    });
+    const response = await this.utilService.sendEmail(subject, target, emailTemplate);
 
-    let mailOptions = {
-      from: `needu`,
-      to: target,
-      subject: '[Needu] 본인 확인을 위한 인증번호입니다.',
-      html: emailTemplate,
-    };
-
-    await transporter.sendMail(mailOptions, function (err, info) {
-      if (err) {
-        console.log(err);
-        return err;
-      }
-      console.log('finish sending : ' + info.response);
-      transporter.close();
-    });
+    if (!response) {
+      return { status: 'failed' };
+    }
     return { status: 'completed', authNum: authNum };
   }
 
@@ -280,33 +260,13 @@ export class UserService {
       </body>
       </html>
     `;
+    let subject = '[Needu] 비밀번호 재설정 안내드립니다.';
 
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.NODEMAILER_USER,
-        pass: process.env.NODEMAILER_PASS,
-      },
-    });
+    const response = await this.utilService.sendEmail(subject, target, emailTemplate);
 
-    let mailOptions = {
-      from: `needu`,
-      to: target,
-      subject: '[Needu] 비밀번호 재설정 안내드립니다.',
-      html: emailTemplate,
-    };
-
-    await transporter.sendMail(mailOptions, function (err, info) {
-      if (err) {
-        console.log(err);
-        return err;
-      }
-      console.log('finish sending : ' + info.response);
-      transporter.close();
-    });
+    if (!response) {
+      throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+    }
     return user.user_id;
   }
 
