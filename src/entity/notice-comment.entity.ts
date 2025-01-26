@@ -1,9 +1,9 @@
 import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { BlindType } from './blind-type.entity';
+import { NoticeCommentLike } from './notice-comment-like.entity';
 import { Notice } from './notice.entity';
 import { User } from './user.entity';
-import { NoticeCommentLike } from './notice-comment-like.entity';
 
 @Entity({ name: 'notice_comment' })
 export class NoticeComment {
@@ -23,7 +23,7 @@ export class NoticeComment {
   @IsOptional()
   parent_id: number;
 
-  @Column()
+  @Column({ type: 'text' })
   @IsString()
   content: string;
 
