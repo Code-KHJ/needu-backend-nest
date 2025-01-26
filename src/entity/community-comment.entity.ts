@@ -1,10 +1,10 @@
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { CommunityPost } from './community-post.entity';
-import { IsBoolean, isDateString, IsDateString, isNumber, IsNumber, IsOptional, IsString } from 'class-validator';
-import { User } from './user.entity';
 import { BlindType } from './blind-type.entity';
 import { CommunityCommentLike } from './community-comment-like.entity';
+import { CommunityPost } from './community-post.entity';
 import { CommunityCommentAccepted } from './community_comment_accepted.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'community_comment' })
 export class CommunityComment {
@@ -24,7 +24,7 @@ export class CommunityComment {
   @IsOptional()
   parent_id: number;
 
-  @Column()
+  @Column({ type: 'text' })
   @IsString()
   content: string;
 
