@@ -5,10 +5,12 @@ import { ActivityType } from 'src/entity/activity-type.entity';
 import { CareerType } from 'src/entity/career-type.entity';
 import { Report } from 'src/entity/report.entity';
 import { ReviewHashtag } from 'src/entity/review-hashtag.entity';
+import { Subscribe } from 'src/entity/subscribe.entity';
 import { User } from 'src/entity/user.entity';
 import { UtilService } from 'src/util/util.service';
 import { Repository } from 'typeorm';
 import { ReportCreateDto } from './dto/report-create.dto';
+import { SubscribeCreateDto } from './dto/subscribe-create.dto';
 
 @Injectable()
 export class SharedService {
@@ -23,6 +25,8 @@ export class SharedService {
     private readonly activityTypeRepository: Repository<ActivityType>,
     @InjectRepository(ActivityLog)
     private readonly activityLogRepository: Repository<ActivityLog>,
+    @InjectRepository(Subscribe)
+    private readonly subscribeRepository: Repository<Subscribe>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly utilService: UtilService,
@@ -116,5 +120,11 @@ export class SharedService {
       activity_points: totalPoints,
       modified_date: () => 'modified_date',
     });
+  }
+
+  async subscribe(subscribeCreateDto: SubscribeCreateDto) {
+    const newSubscribe = await this.subscribeRepository.create(subscribeCreateDto);
+    await this.subscribeRepository.save(newSubscribe);
+    return newSubscribe;
   }
 }
