@@ -1,73 +1,42 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+<img src="https://github.com/Code-KHJ/Needu/assets/124508326/ab53f977-0de7-4ec6-a681-3a04f932f68a" width="337px" height="104.5px" alt="NeedU">
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+***
+# 사이트 주소 [NeedU](https://needu.site)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 서비스 소개
+> NEEDU는 사회복지 생태계의 더 나은 조직문화를 만들어가는 커뮤니티 플랫폼을 지향합니다.   
+> 현재는 ver.1 단계로 사회복지기관 리뷰, 커뮤니티, 커피챗 연계 서비스를 제공하고 있습니다.   
+> 현재까지 약 600명의 회원이 이용하고 있습니다.
 
-## Description
+## 로그
+> 23.02. 서비스 기획, 팀빌딩
+> 23.07. ver.0 "기관리뷰 서비스" 개발   
+> 23.08. 서비스 베타테스트 실시 (71명 테스터 참여)
+> 23.08. 서비스 정식 오픈
+> 23.10. 니쥬챗 서비스 추가
+> 24.10. 서비스 전면 리뉴얼 및 커뮤니티 서비스추가 
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 주요 기능
+* 사회복지기관 종사자 리뷰
+* 사회복지기관 실습자 리뷰
+* 사회복지사를 위한 커피챗 서비스
+* 사회복지종사자 커뮤니티
 
-## Installation
+***
 
-```bash
-$ npm install
-```
+## 사용기술
+* Frontend : React.js, HTML, CSS, Sass, Javascript
+* Backend : Nest.js, Node.js
+* Database : Mysql, Redis
+* Infra : AWS(EC2, RDS, S3), Github
+* Design : Figma
 
-## Running the app
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+## 구현 기술
+* Oauth 소셜로그인(카카오, 구글)
+* JWT를 활용한 로그인 인증/인가
+* Python 크롤러를 통한 일간 정보 게시 봇 생성
+* Perspectiveapi를 활용하여 비속어, 욕설 제제 시스템 구축
+* Slack Webhook API로 유저 활동에 대한 모니터링 시스템 구축
+* Nginx, SSL 인증서를 활용하여 HTTPS 도입
+* Github action을 통한 CICD 구현
