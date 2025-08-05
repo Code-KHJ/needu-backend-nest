@@ -5,19 +5,20 @@ import { ReviewLike } from 'src/entity/review-like.entity';
 import { ReviewTrainingLike } from 'src/entity/review-training-like.entity';
 import { ReviewTraning } from 'src/entity/review-training.entity';
 import { UserCareer } from 'src/entity/user-career.entity';
+import { User } from 'src/entity/user.entity';
 import { SharedService } from 'src/shared/shared.service';
 import { CareerCreateDto } from 'src/user/dto/career-create.dto';
 import { UserService } from 'src/user/user.service';
 import { UtilService } from 'src/util/util.service';
 import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
 import { Review } from '../entity/review.entity';
+import { CommonReviewsGetResponseDto } from './dto/common-review-get-response.dto';
 import { WorkingCreateDto } from './dto/review-create.dto';
 import { DeleteReviewDto } from './dto/review-delete.dto';
 import { ReviewsGetResponseDto } from './dto/review-get-response.dto';
 import { LikeDto } from './dto/review-like.dto';
 import { TrainingCreateDto } from './dto/review-training-create.dto';
 import { ReviewsTrainingGetResponseDto } from './dto/review-training-get-response.dto';
-import { CommonReviewsGetResponseDto } from './dto/common-review-get-response.dto';
 
 @Injectable()
 export class ReviewService {
@@ -30,6 +31,8 @@ export class ReviewService {
     private readonly reviewLikeRepository: Repository<ReviewLike>,
     @InjectRepository(ReviewTrainingLike)
     private readonly reviewTrainingLikeRepository: Repository<ReviewTrainingLike>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectEntityManager() private readonly entityManager: EntityManager,
     private readonly corpService: CorpService,
     private readonly userService: UserService,
@@ -83,6 +86,12 @@ export class ReviewService {
       };
       const career = await this.userService.createCareer(careerDto);
       const savedCareer = await queryRunner.manager.save(career);
+
+      const user = await this.userRepository.findOne({ where: { user_id: workingCreateDto.user_id } });
+      if (user.authority === 0) {
+        user.authority = 1;
+      }
+      await queryRunner.manager.save(user);
 
       await queryRunner.commitTransaction();
 
@@ -306,6 +315,14 @@ export class ReviewService {
     try {
       const review = this.reviewTrainingRepository.create({ ...trainingCreateDto, total_score: total_score });
       const savedReview = await queryRunner.manager.save(review);
+
+      const user = await this.userRepository.findOne({ where: { user_id: trainingCreateDto.user_id } });
+      if (user.authority === 0) {
+        user.authority = 1;
+      }
+
+      await queryRunner.manager.save(user);
+
       await queryRunner.commitTransaction();
 
       this.utilService.slackWebHook('alert', slackMsg);
