@@ -90,8 +90,8 @@ export class ReviewService {
       const user = await this.userRepository.findOne({ where: { user_id: workingCreateDto.user_id } });
       if (user.authority === 0) {
         user.authority = 1;
+        await queryRunner.manager.save(user);
       }
-      await queryRunner.manager.save(user);
 
       await queryRunner.commitTransaction();
 

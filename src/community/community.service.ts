@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { execFile } from 'child_process';
+import { promises as fs } from 'fs';
 import Redis from 'ioredis';
 import Perspective from 'perspective-api-client';
 import { CommunityCommentLike } from 'src/entity/community-comment-like.entity';
@@ -14,7 +15,7 @@ import { CommunityCommentAccepted } from 'src/entity/community_comment_accepted.
 import { User } from 'src/entity/user.entity';
 import { SharedService } from 'src/shared/shared.service';
 import { UtilService } from 'src/util/util.service';
-import { In, IsNull, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { CommunityCommentAcceptDto } from './dto/comment-accept.dto';
 import { CommunityCommentCreateDto } from './dto/comment-create.dto';
 import { CommentGetResponseDto } from './dto/comment-get.dto';
@@ -25,7 +26,6 @@ import { PostGetResponseDto, PostsGetDto, PostsGetResponseDto } from './dto/post
 import { PostLikeDto } from './dto/post-like.dto';
 import { PostUpdateDto } from './dto/post-update.dto';
 import { WeeklyGetResponseDto } from './dto/weekly-get.dto';
-import { promises as fs } from 'fs';
 
 @Injectable()
 export class CommunityService {
@@ -46,6 +46,7 @@ export class CommunityService {
     private readonly communityWeeklyBestRepository: Repository<CommunityWeeklyBest>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
     private readonly utilService: UtilService,
     private readonly sharedService: SharedService,
     @Inject('REDIS_CLIENT')
@@ -68,15 +69,26 @@ export class CommunityService {
       user_id: user_id,
       content: html,
     };
-    const post = this.communityPostRepository.create(postDto);
-    const savedPost = await this.communityPostRepository.save(post);
 
-    if (!savedPost.id) {
-      throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    const savedPostForAlert = await this.communityPostRepository.findOne({ where: { id: savedPost.id }, relations: ['user', 'topic'] });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const slackMsg = `
+    try {
+      const post = queryRunner.manager.create(CommunityPost, postDto as Partial<CommunityPost>);
+      const savedPost = await queryRunner.manager.save(post);
+      if (!savedPost.id) {
+        throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      const savedPostForAlert = await queryRunner.manager.findOne(CommunityPost, { where: { id: savedPost.id }, relations: ['user', 'topic'] });
+      const user = await queryRunner.manager.findOne(User, { where: { id: user_id } });
+      if (user.authority === 0) {
+        user.authority = 1;
+        await queryRunner.manager.save(user);
+      }
+      await queryRunner.commitTransaction();
+
+      const slackMsg = `
 =======신규 게시글=======
 글번호 : ${savedPostForAlert.id}
 작성자 : ${savedPostForAlert.user.nickname}
@@ -85,11 +97,16 @@ export class CommunityService {
 본문 : ${savedPostForAlert.content}
 링크 : ${process.env.HOST}/community/${savedPostForAlert.topic.type.id === 1 ? 'free' : 'question'}/${savedPost.id}
 `;
+      this.utilService.slackWebHook('alert', slackMsg);
+      this.sharedService.addPoint(userId, 4, `post${savedPost.id}`);
 
-    this.utilService.slackWebHook('alert', slackMsg);
-    this.sharedService.addPoint(userId, 4, `post${savedPost.id}`);
-
-    return { post: savedPost };
+      return { post: savedPost };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async getPost(postId: number) {
