@@ -564,4 +564,11 @@ export class CorpService {
     }
     return JSON.parse(corpList);
   }
+
+  async dump() {
+    const corpList = await this.corpRepository.find({
+      select: ['id', 'corp_name', 'city', 'gugun'],
+    });
+    return corpList;
+  }
 }

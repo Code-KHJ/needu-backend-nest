@@ -1,16 +1,15 @@
-import { CorpService } from './corp.service';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CorpsGetDto } from './dto/corps-get.dto';
-import { CorpCreateDto } from './dto/corp-create.dto';
-import { CorpUpdateDto } from './dto/corp-update.dto';
+import { Public } from '../common/decorators';
+import { Roles } from '../common/decorators/role.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { RoleType } from '../common/role-type';
-import { Roles } from '../common/decorators/role.decorator';
-import { Public } from '../common/decorators';
-import { CorpsGetWorkingDto } from './dto/corps-get-working.dto';
+import { CorpService } from './corp.service';
+import { CorpCreateDto } from './dto/corp-create.dto';
+import { CorpUpdateDto } from './dto/corp-update.dto';
 import { CorpsGetTrainingDto } from './dto/corps-get-training.dto';
-import { response } from 'express';
+import { CorpsGetWorkingDto } from './dto/corps-get-working.dto';
+import { CorpsGetDto } from './dto/corps-get.dto';
 
 @ApiTags('Corp')
 @Controller('/api/corp')
@@ -132,5 +131,16 @@ export class CorpController {
   async getHotList() {
     const response = await this.corpService.getHotList();
     return response;
+  }
+
+  @Public()
+  @Get('/dump')
+  @ApiOperation({ summary: '로컬스토리지 저장용 기관 전체 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '전체 조회 성공',
+  })
+  async getAllCorpsForDump() {
+    return await this.corpService.dump();
   }
 }
