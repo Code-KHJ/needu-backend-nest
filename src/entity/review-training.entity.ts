@@ -88,7 +88,7 @@ export class ReviewTraning {
   @IsNumber()
   blind: number = 1;
 
-  @Column()
+  @Column({ default: false })
   @IsBoolean()
   is_del: boolean = false;
 

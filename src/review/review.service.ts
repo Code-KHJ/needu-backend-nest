@@ -1,5 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import axios from 'axios';
 import { CorpService } from 'src/corp/corp.service';
 import { ReviewLike } from 'src/entity/review-like.entity';
 import { ReviewTrainingLike } from 'src/entity/review-training-like.entity';
@@ -39,6 +41,7 @@ export class ReviewService {
     private readonly dataSource: DataSource,
     private readonly utilService: UtilService,
     private readonly sharedService: SharedService,
+    private readonly configService: ConfigService,
   ) {}
 
   // 전현직 리뷰 생성
@@ -98,6 +101,34 @@ export class ReviewService {
       this.utilService.slackWebHook('alert', slackMsg);
       const findReview = await this.reviewRepository.findOne({ where: { id: savedReview.id }, relations: ['user'] });
       this.sharedService.addPoint(findReview.user.id, 3, `working${savedReview.id}`);
+
+      // 리뷰 작성 완료 웹훅 전송
+      const reviewWebhookUrl = this.configService.get<string>('REVIEW_WEBHOOK_URL');
+      const reviewWebhookApiKey = this.configService.get<string>('REVIEW_WEBHOOK_API_KEY');
+      if (reviewWebhookUrl && reviewWebhookApiKey) {
+        const corpAddress = [workingCreateDto.corp.city, workingCreateDto.corp.gugun].filter(Boolean).join(' ') || null;
+        try {
+          await axios.post(
+            reviewWebhookUrl,
+            {
+              corp_name: savedReview.corp_name,
+              highlight: savedReview.highlight,
+              pros: savedReview.pros,
+              cons: savedReview.cons,
+              corp_address: corpAddress,
+              url: `https://needu.site/review/detail/working?name=${workingCreateDto.corp.corp_name}`,
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-make-apikey': reviewWebhookApiKey,
+              },
+            },
+          );
+        } catch (webhookError) {
+          console.error('Review webhook error:', webhookError);
+        }
+      }
 
       return { review: savedReview, career: savedCareer };
     } catch (error) {
