@@ -30,7 +30,7 @@ export class UserCareer {
   @Column()
   review_no: number;
 
-  @Column()
+  @Column({ default: false })
   is_del: boolean;
 
   @OneToOne(() => Review, review => review.userCareer)

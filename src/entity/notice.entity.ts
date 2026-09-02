@@ -48,7 +48,7 @@ export class Notice {
   @IsNumber()
   view: number = 0;
 
-  @Column()
+  @Column({ default: false })
   @IsBoolean()
   is_del: boolean = false;
 

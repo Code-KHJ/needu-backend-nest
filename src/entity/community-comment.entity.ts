@@ -36,7 +36,7 @@ export class CommunityComment {
   @IsDateString()
   updated_at: Date;
 
-  @Column()
+  @Column({ default: false })
   @IsBoolean()
   is_del: boolean = false;
 

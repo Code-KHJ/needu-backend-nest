@@ -31,7 +31,7 @@ export class User {
   @MinLength(2)
   nickname: string;
 
-  @Column()
+  @Column({ default: 0 })
   @IsNumber()
   authority: number;
 

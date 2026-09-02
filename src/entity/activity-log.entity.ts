@@ -20,7 +20,7 @@ export class ActivityLog {
   @IsString()
   reason: string;
 
-  @Column()
+  @Column({ default: false })
   @IsBoolean()
   is_del: boolean = false;
 
